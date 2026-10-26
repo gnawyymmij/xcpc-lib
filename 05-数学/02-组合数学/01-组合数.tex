@@ -1,0 +1,14 @@
+\subsubsection{组合数 (Binomial Coefficients)}
+预处理阶乘及其逆元，O(1) 查询组合数。
+\begin{lstlisting}
+namespace binom{
+	const ll Lim=300010,mod=998244353;
+	ll jc[Lim],inv[Lim],inc[Lim];
+	void pre(){
+		jc[0]=jc[1]=inc[0]=inc[1]=inv[0]=inv[1]=1;
+		f(i,2,Lim-1)jc[i]=jc[i-1]*i%mod,inv[i]=(mod-mod/i)*inv[mod%i]%mod,
+		inc[i]=inc[i-1]*inv[i]%mod;
+	}ll C(ll n,ll m){if(n<0||m<0||n<m)return 0;return jc[n]*inc[m]%mod*inc[n-m]%mod;}
+}
+\end{lstlisting}
+

@@ -1,0 +1,42 @@
+\subsubsection{高斯消元 (Gaussian Elimination)}
+高斯消元法，用于求解线性方程组。
+\begin{lstlisting}
+double a[110][110];
+double b[110];
+ll p[110];
+const double eps=1e-7;
+int main(){
+	n=d;f(i,1,n){
+		f(j,1,n+1)a[i][j]=d;
+	}ll row=1;
+    f(i,1,n){
+		ll pos=-1;f(j,row,n)if(fabs(a[j][i])>=eps)pos=j;
+		if(pos==-1)continue;
+		swap(a[row],a[pos]);
+		double x=a[row][i];f(j,1,n+1)a[row][j]/=x;
+		f(j,row+1,n){
+			x=a[j][i];
+			f(k,i,n+1)a[j][k]-=x*a[row][k];
+		}row++;
+	}
+    // f(i,1,n){
+    //     f(j,1,n+1)cout<<a[i][j]<<" ";cout<<endl;
+    // }
+    f(i,1,n){
+        bool fl=1;
+        f(j,1,n)if(fabs(a[i][j])>eps)fl=0;
+        if(fl){if(fabs(a[i][n+1])>eps){puts("-1");return 0;}}//无解
+    }
+    f(i,1,n){
+        bool fl=1;
+        f(j,1,n)if(fabs(a[i][j])>eps)fl=0;
+        if(fl){if(fabs(a[i][n+1])<=eps){puts("0");return 0;}}//无限解
+    }
+    for(int i=n;i>=1;i--){
+		b[i]=a[i][n+1];
+		f(j,1,i-1)a[j][n+1]-=a[i][n+1]*a[j][i];
+	}
+    f(i,1,n)printf("x%lld=%.2lf\n",i,b[i]);
+	return 0;
+}
+\end{lstlisting}

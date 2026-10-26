@@ -1,0 +1,160 @@
+\documentclass[a4paper]{article}
+
+% --- 基本设置与中文支持 ---
+% 推荐使用 XeLaTeX 或 LuaLaTeX 编译
+\usepackage{ctex} 
+\usepackage[a4paper, margin=2.5cm]{geometry} % 页面边距
+
+% --- 数学公式 ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts} % 用于 \mathbb
+
+% --- 代码高亮 (listings) ---
+\usepackage{xcolor}
+\usepackage{listings}
+
+% 定义代码颜色
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97} % 稍浅的背景色
+
+% 定义 C++ 代码样式
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C++
+}
+\lstset{style=mystyle}
+
+% --- 其他 ---
+\usepackage{hyperref} % PDF 超链接
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={ACM 算法竞赛模板},
+}
+
+% =============================================
+% --- 文档开始 ---
+% =============================================
+
+\title{板}
+\author{jimmyywang}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% =============================================
+\section{数据结构 (Data Structures)}
+% =============================================
+\input{01-数据结构/01-哈希表.tex}
+\input{01-数据结构/02-fhq-treap.tex}
+\input{01-数据结构/03-RMQ.tex}
+\input{01-数据结构/04-笛卡尔树.tex}
+\input{01-数据结构/05-树链剖分.tex}
+\input{01-数据结构/06-LCT.tex}
+\input{01-数据结构/07-李超线段树.tex}
+\section{图论 (Graph Theory)}
+% =============================================
+
+\subsection{连通性 (Connectivity)}
+
+\input{02-图论/01-连通性/01-Tarjan 求 SCC.tex}
+\input{02-图论/01-连通性/02-仅加边动态 scc.tex}
+\input{02-图论/01-连通性/03-点双 ／ 边双.tex}
+\input{02-图论/01-连通性/04-圆方树.tex}
+\subsection{最短路 (Shortest Path)}
+
+\input{02-图论/02-最短路/01-负环.tex}
+\input{02-图论/03-欧拉路径.tex}
+\subsection{网络流 (Network Flow)}
+
+\input{02-图论/04-网络流/01-Dinic.tex}
+\input{02-图论/04-网络流/02-MCMF.tex}
+\input{02-图论/04-网络流/03-网络流经典模型.tex}
+\subsection{图匹配 (Graph Matching)}
+
+\input{02-图论/05-图匹配/01-二分图最小权完美匹配.tex}
+\subsection{树上算法 (Tree Algorithms)}
+
+\input{02-图论/06-树上算法/01-树的重心.tex}
+\input{02-图论/06-树上算法/02-树上离某个点最远的点.tex}
+\input{02-图论/06-树上算法/03-斯坦纳树.tex}
+\input{02-图论/07-2-SAT.tex}
+\section{动态规划 (Dynamic Programming)}
+% =============================================
+
+\input{03-动态规划/01-WQS 二分.tex}
+\input{03-动态规划/02-决策单调性与二分队列.tex}
+\section{字符串 (String Algorithms)}
+% =============================================
+
+\input{04-字符串/01-字符串哈希.tex}
+\input{04-字符串/02-KMP.tex}
+\input{04-字符串/03-Manacher.tex}
+\input{04-字符串/04-AC 自动机.tex}
+\input{04-字符串/05-后缀数组.tex}
+\input{04-字符串/06-回文自动机.tex}
+\section{数学 (Mathematics)}
+% =============================================
+
+\subsection{数论 (Number Theory)}
+
+\input{05-数学/01-数论/01-Exgcd.tex}
+\input{05-数学/01-数论/02-万能欧几里得.tex}
+\input{05-数学/01-数论/03-ExCRT.tex}
+\input{05-数学/01-数论/04-扩展欧拉定理.tex}
+\input{05-数学/01-数论/05-Pollard-Rho.tex}
+\input{05-数学/01-数论/06-Dirichlet 前缀和.tex}
+\input{05-数学/01-数论/07-杜教筛.tex}
+\input{05-数学/01-数论/08-Min25.tex}
+\input{05-数学/01-数论/09-单位根反演.tex}
+\subsection{组合数学 (Combinatorics)}
+
+\input{05-数学/02-组合数学/01-组合数.tex}
+\input{05-数学/02-组合数学/02-Lucas 定理.tex}
+\input{05-数学/02-组合数学/03-ExLucas.tex}
+\input{05-数学/02-组合数学/04-min-max 容斥.tex}
+\input{05-数学/02-组合数学/05-反演.tex}
+\subsection{线性代数 (Linear Algebra)}
+
+\input{05-数学/03-线性代数/01-高斯消元.tex}
+\input{05-数学/03-线性代数/02-行列式.tex}
+\input{05-数学/03-线性代数/03-矩阵树定理.tex}
+\input{05-数学/03-线性代数/04-BEST 定理.tex}
+\input{05-数学/03-线性代数/05-LGV 引理.tex}
+\subsection{多项式 (Polynomials)}
+\input{05-数学/04-多项式/00-多项式全家桶.tex}
+\input{05-数学/04-多项式/01-Bostan-Mori.tex}
+\subsection{数值方法 (Numerical Methods)}
+
+\input{05-数学/05-数值方法/01-自适应辛普森.tex}
+\section{Misc}
+\input{06-Misc/01-C++ 手动上下取整.tex}
+\input{06-Misc/02-单点修改区间摩尔投票.tex}
+\input{06-Misc/03-双栈模拟 dequeue.tex}
+\input{06-Misc/04-测速.tex}
+\input{06-Misc/05-KKT.tex}
+\end{document}

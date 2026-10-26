@@ -1,0 +1,29 @@
+\subsubsection{Bostan-Mori}
+
+求 $[z^m]\frac{P(z)}{Q(z)}$，原理是 $\frac{P(z)}{Q(z)}=\frac{P(z)Q(-z)}{Q(z)Q(-z)}$，随后分母只有偶次项，分子可以奇偶分开，根据 $m$ 的奇偶性只需要取一边即可变成 $[z^{m/2}]\frac{P_1(z)}{Q_1(z)}$ 的一个子问题。
+
+\begin{lstlisting}
+while(m){
+	vector<ll>nQ;
+	nQ.clear();
+	int q=Q.size();
+	f(i,0,q-1){
+		if(i&1)nQ.pb((mod-Q[i])%mod);
+		else nQ.pb(Q[i]);
+	}
+	// for(auto w:Q)cout<<w<<" ";cout<<endl;
+	// for(auto w:nQ)cout<<w<<" ";cout<<endl;
+	vector<ll> dP=Mul(P,nQ);
+	vector<ll> dQ=Mul(Q,nQ);
+	P.clear(),Q.clear();
+	int dq=dQ.size();
+	f(i,0,dq-1)
+		if(i%2==0)Q.pb(dQ[i]);
+	int dp=dP.size();
+	f(i,0,dp-1)
+		if(i%2==m%2)P.pb(dP[i]);
+	m>>=1;
+}
+printf("%lld\n",P[0]*qp(Q[0])%mod);
+\end{lstlisting}
+

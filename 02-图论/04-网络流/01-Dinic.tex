@@ -1,0 +1,55 @@
+\subsubsection{Dinic (Max Flow)}
+Dinic 算法，用于高效求解网络最大流。
+\begin{lstlisting}
+struct node{ll u,v,w,nx;}e[1000010];
+ll hd[100010],cnt=1;
+void add(ll u,ll v,ll w){e[++cnt]={u,v,w,hd[u]};hd[u]=cnt;}
+void ad(ll u,ll v,ll w){add(u,v,w),add(v,u,0);}
+
+ll de[100010],cur[100010];
+ll dis[100010];
+#define inf 0x3f3f3f3f
+queue<ll>q;
+ll nodes,S,T;
+bool bfs(){
+    while(!q.empty())q.pop();
+    f(i,1,nodes)cur[i]=hd[i],de[i]=inf;de[S]=0;q.push(S);
+    while(!q.empty()){
+        ll u=q.front();q.pop();
+        for(int i=hd[u];i;i=e[i].nx){
+            ll v=e[i].v;if(e[i].w==0)continue;
+            if(de[v]==inf){
+                de[v]=de[u]+1;q.push(v);
+                if(v==T)return 1;
+            }
+        }
+    }return 0;
+}
+ll dfs(ll u,ll fl){
+    if(u==T)return fl;
+    ll res=0,k=0;
+    for(int i=cur[u];i&&fl;i=e[i].nx){
+        cur[u]=i;if(e[i].w==0)continue;
+        ll v=e[i].v;if(de[v]==de[u]+1){
+            k=dfs(v,min(fl,e[i].w));
+            e[i].w-=k,e[i^1].w+=k;
+            fl-=k,res+=k;
+        }
+    }return res;
+}
+ll n,m;
+ll dinic(){
+    ll res=0;
+    while(bfs())res+=dfs(S,inf);
+    return res;
+}
+int main(){
+    n=d,m=d,S=d,T=d;nodes=n;
+    f(i,1,m){
+        ll u=d,v=d,w=d;
+        ad(u,v,w);
+    }cout<<dinic();
+    return 0;
+}
+\end{lstlisting}
+

@@ -1,0 +1,42 @@
+\subsection{回文自动机 (Palindrome Automaton - PAM)}
+\begin{lstlisting}
+char C[500010];
+char c;
+ll res;
+ll ch[500010][26];
+ll fail[500010];
+ll len[500010];
+ll sz[500010];
+ll lst;
+void add(ll u){
+	while(1){
+		if(c==C[n-len[u]-1]){
+			if(!ch[u][c-'a'])ch[u][c-'a']=++cnt,len[cnt]=len[u]+2;
+			lst=ch[u][c-'a'];
+			break;
+		}u=fail[u];
+	}if(u==1){sz[ch[u][c-'a']]=1,fail[ch[u][c-'a']]=0;return;}
+	u=fail[u];
+	while(1){
+		if(c==C[n-len[u]-1]){
+			fail[lst]=ch[u][c-'a'];
+			sz[lst]=sz[ch[u][c-'a']]+1;
+			break;
+		}u=fail[u];
+	}
+}char fake[500010];
+int main(){
+	len[0]=0,len[1]=-1;
+	cnt=1;fail[0]=1;fail[1]=-1;lst=1;
+	scanf("%s",fake+1);m=strlen(fake+1);
+	f(i,1,m){
+		c=(fake[i]-97+res)%26+97;
+		C[++n]=c;add(lst);
+		res=sz[lst];
+		printf("%lld ",res=sz[lst]);//以这个位置结尾的回文子串个数
+	}return 0;
+}
+\end{lstlisting}
+
+\newpage
+% =============================================

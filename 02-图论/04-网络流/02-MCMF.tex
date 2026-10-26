@@ -1,0 +1,73 @@
+\subsubsection{MCMF (Min Cost Max Flow)}
+upd on 25.10.12 已严肃进行势能优化 (使用 SPFA 预处理 h[ ] 数组，后续使用 Dijkstra)。
+\begin{lstlisting}
+struct node{ll u,v,w,c,nx;}e[1000010];
+ll hd[100010],cnt=1;
+void add(ll u,ll v,ll w,ll c){e[++cnt]={u,v,w,c,hd[u]};hd[u]=cnt;}
+void ad(ll u,ll v,ll w,ll c){add(u,v,w,c),add(v,u,0,-c);}
+ll n,m,S,T,nodes;
+ll cst;
+ll pre[100010];
+ll dis[100010];
+ll h[100010];
+#define inf 0x3f3f3f3f
+ll arg(){
+    ll u,v=T,fl=inf;
+    while(v!=S)u=pre[v],fl=min(fl,e[u].w),v=e[u].u;
+    v=T;while(v!=S)u=pre[v],e[u].w-=fl,e[u^1].w+=fl,v=e[u].u;
+    cst+=fl*(dis[T]-(h[S]-h[T]));return fl;
+}
+struct myp{ll w,x;};
+bool operator < (myp a,myp b){return a.w>b.w;}
+bool in[100010];
+bool dij(){
+    priority_queue<myp>q;
+    f(i,1,nodes)dis[i]=inf,pre[i]=in[i]=0;
+    dis[S]=0;q.push({0,S});
+    while(!q.empty()){
+        ll u=q.top().x;q.pop();
+        if(in[u])continue;in[u]=1;
+        for(int i=hd[u];i;i=e[i].nx){
+            if(e[i].w==0)continue;ll v=e[i].v;
+            if(dis[u]+(e[i].c+h[u]-h[v])<dis[v]){
+                dis[v]=dis[u]+(e[i].c+h[u]-h[v]);pre[v]=i;
+                q.push({dis[v],v});
+            }
+        }
+    }
+    return dis[T]!=inf;
+}
+array<ll,2> mcmf(){
+    ll fl=0;
+    while(dij()){
+        fl+=arg();
+        f(i,1,nodes)h[i]+=dis[i];
+        // f(i,1,nodes)cout<<h[i]<<" ";cout<<endl;
+    }return {fl,cst};
+}
+void spfa(ll s){
+    queue<ll>q;
+    fill(h+1,h+nodes+1,inf);
+    h[s]=0;q.push(s);in[s]=1;
+    while(!q.empty()){
+        ll u=q.front();q.pop();in[u]=0;
+        for(int i=hd[u];i;i=e[i].nx){
+            if(e[i].w==0)continue;ll v=e[i].v;
+            if(h[u]+e[i].c<h[v]){
+                h[v]=h[u]+e[i].c;pre[v]=i;
+                if(!in[v])in[v]=1,q.push(v);
+            }
+        }
+    }
+}
+int main(){
+    n=d,m=d,S=d,T=d;nodes=n;
+    f(i,1,m){
+        ll u=d,v=d,w=d,c=d;
+        ad(u,v,w,c);
+    }spfa(S);
+    auto res=mcmf();
+    cout<<res[0]<<" "<<res[1]<<endl;
+    return 0;
+}
+\end{lstlisting}

@@ -1,0 +1,44 @@
+\subsection{哈希表}
+本地实现线性探测，yosupo \~175ms（umap+同一个shift函数 334ms）
+\begin{lstlisting}
+using u64=unsigned ll;
+u64 xorshift(u64 x) {
+	x += 0x9e3779b97f4a7c15;
+    // x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+    return x ^ (x >> 31);
+}
+template<typename K, typename V, int M=(1<<20)>
+struct HashTable{
+	static_assert((M&(M-1))== 0);
+    static const int MASK=M-1;
+	int cnt=0;vector<int>e;
+	bitset<M> used;
+	K k[M]; V v[M];
+	void clear(){
+		for(auto x:e)used[x]=0;
+		e.clear();cnt=0;
+	}
+	int size(){return cnt;}
+	int idx(K x){
+		int u=xorshift(x)&MASK;
+		for(;used[u]&&k[u]!=x;(++u)&=MASK);
+		return u;
+	}
+	V* find(K x){
+		int i=idx(x);
+		if(!used[i])return nullptr;
+		return &v[i];
+	}
+	V& operator [](K x){
+		int i=idx(x);
+		if(!used[i]){
+			used[i]=1;cnt++;
+			e.pb(i);
+			k[i]=x,v[i]=V{};
+		}return v[i];
+	}
+};
+\end{lstlisting}
+然后当 std::map 用即可。注：此处默认 K, V 都是整数，如果有其他类型需要额外先写一个该类型的 hash。
+

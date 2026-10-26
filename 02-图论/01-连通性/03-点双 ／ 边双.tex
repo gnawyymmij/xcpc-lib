@@ -1,0 +1,102 @@
+\subsubsection{点双 / 边双 (Biconnected Components)}
+\paragraph{边双}
+\begin{lstlisting}
+// 注意：cnt初始值需要等于 1！不然异或失效！
+ll dfn[500010],low[500010],tim;
+bool cut[4000010];
+void dfs(ll u,ll fa){
+	dfn[u]=low[u]=++tim;
+	for(int i=hd[u];i;i=e[i].nx){
+		ll v=e[i].v;if(v==fa)continue;
+		// cout<<u<<" "<<v<<endl;
+		if(!dfn[v]){
+			dfs(v,u);low[u]=min(low[u],low[v]);
+			if(dfn[u]<low[v])cut[i]=cut[i^1]=1;
+		}else low[u]=min(low[u],dfn[v]);
+	}
+}ll fa[500010];
+ll find(ll x){if(fa[x]==x)return x;return fa[x]=find(fa[x]);}
+void un(ll u,ll v){fa[find(u)]=find(v);}
+ll rep[500010],dcc;
+vi Dcc[500010];
+int main(){
+	n=d,m=d;f(i,1,m){
+		ll u=d,v=d;
+		add(u,v),add(v,u);
+	}f(i,1,n)if(!dfn[i])dfs(i,0);
+	// f(i,1,n)cout<<dfn[i]<<" "<<low[i]<<endl;
+	f(i,1,n)fa[i]=i;
+	f(i,1,cnt)if(!cut[i])un(e[i].u,e[i].v);
+	f(i,1,n){
+		if(!rep[find(i)])rep[find(i)]=++dcc;
+		Dcc[rep[find(i)]].pb(i);
+	}cout<<dcc<<endl;
+	f(i,1,dcc){
+		cout<<Dcc[i].size()<<" ";
+		fe(j,Dcc[i])cout<<Dcc[i][j]<<" ";
+		cout<<endl;
+	}
+	return 0;
+}
+\end{lstlisting}
+
+\paragraph{点双}
+\begin{lstlisting}
+vi e[500010];
+ll dfn[500010],low[500010],tim;
+ll st[500010],tp,dcc;
+bool in[500010];
+vi Dcc[500010];
+vector<array<int,2>>ed[1000010];
+ll deg[500010];
+array<int,2>ste[1000010];
+int tpe;
+void dfs(int u,int fa){
+    dfn[u]=low[u]=++tim;
+    st[++tp]=u;in[u]=1;
+    for(auto v:e[u])if(v!=fa){
+        if(!dfn[v]){
+            ste[++tpe]={u,v};
+            dfs(v,u);if(dfn[u]<=low[v]){
+                dcc++;Dcc[dcc].pb(u);
+                ll now;
+                while(1){
+                    now=st[tp--];in[now]=0;
+                    Dcc[dcc].pb(now);
+                    if(now==v)break;
+                }array<int,2>E;
+                while(1){
+                    E=ste[tpe--];
+                    ed[dcc].pb(E);
+                    if(E==(array<int,2>){u,v})break;
+                }
+            }low[u]=min(low[u],low[v]);
+        }else if(in[v]){
+            low[u]=min(low[u],dfn[v]);
+            if(dfn[v]<dfn[u])ste[++tpe]={u,v};
+        }
+    }
+}
+int main(){
+	n=d,m=d;f(i,1,m){
+		ll u=d,v=d;if(u!=v)deg[u]++,deg[v]++;
+		e[u].pb(v),e[v].pb(u);
+	}f(i,1,n)if(!dfn[i]){
+        if(deg[i]==0)Dcc[++dcc].pb(i);
+        else tp=0,tpe=0,dfs(i,0);
+    }
+	cout<<dcc<<endl;
+	f(i,1,dcc){
+		cout<<Dcc[i].size()<<" ";
+		fe(j,Dcc[i])cout<<Dcc[i][j]<<" ";
+		cout<<endl;
+	}
+	return 0;
+}
+\end{lstlisting}
+
+
+\textbf{Note: } 如果需要逐点双遍历（如点双内 dfs），必须把点双内的边集也求出！不然复杂度错误！一个 trivial 的做法是往边上赛一个点，求出点双后如果集合内包含一个边上塞的点，那么这条边在点双内。这种做法在点双大小为 2 的时候会挂，比较难处理。
+
+现已将代码改为可以直接求出边集。
+

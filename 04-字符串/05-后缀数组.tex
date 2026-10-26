@@ -1,0 +1,38 @@
+\subsection{后缀数组 (Suffix Array - SA)}
+he: 排名 i 和排名 i-1 的后缀的 LCP
+\begin{lstlisting}
+ll n,m;
+char c[1000010];
+ll sa[1000010],rk[1000010];
+struct node{ll x,y,id;}A[1000010],B[1000010];
+ll he[1000010];
+ll buc[1000010];
+void SA(){
+	f(i,1,n)buc[c[i]]++;
+	f(i,1,200)buc[i]+=buc[i-1];
+	f(i,1,n)rk[i]=buc[c[i]-1]+1;
+	for(int l=1;l<=n;l*=2){
+		f(i,1,n){
+			if(i+l>n)A[i]={rk[i],0,i};
+			else A[i]={rk[i],rk[i+l],i};
+		}f(i,1,n)buc[i]=0;f(i,1,n)buc[A[i].y]++;
+		f(i,1,n)buc[i]+=buc[i-1];
+		for(int i=n;i>=1;i--)B[buc[A[i].y]--]=A[i];
+		f(i,1,n)buc[i]=0;f(i,1,n)buc[B[i].x]++;
+		f(i,1,n)buc[i]+=buc[i-1];
+		for(int i=n;i>=1;i--)A[buc[B[i].x]--]=B[i];
+		ll cur=1;rk[A[1].id]=1;
+		f(i,2,n){
+			if(A[i].x==A[i-1].x&&A[i].y==A[i-1].y);
+			else cur=i;rk[A[i].id]=cur;
+		}
+	}f(i,1,n)sa[rk[i]]=i;
+	ll k=0;f(i,1,n){
+		if(k)k--;if(rk[i]==1)continue;
+		ll j=sa[rk[i]-1];
+		while(i+k<=n&&j+k<=n&&c[i+k]==c[j+k])k++;
+		he[rk[i]]=k;
+	}
+}//he:排名 i 和排名 i-1 的后缀的LCP
+\end{lstlisting}
+

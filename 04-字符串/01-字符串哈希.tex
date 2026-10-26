@@ -1,0 +1,18 @@
+\subsection{字符串哈希 (String Hashing)}
+用于 O(n) 预处理，O(1) 查询任意子串的哈希值。
+这个板子好像挺容易冲突的，建议双 hash。
+\begin{lstlisting}
+const ll mod=180181327,bs=31;
+ll pw[1000010];
+ll h[1000010],n;
+char c[1000010];
+ll get(ll l,ll r){
+    return (h[r]-pw[r-l+1]*h[l-1]%mod+mod)%mod;
+}
+int main(){
+    pw[0]=1;f(i,1,1000000)pw[i]=pw[i-1]*bs%mod;
+    scanf("%s",c+1);n=strlen(c+1);
+    f(i,1,n)h[i]=(h[i-1]*bs+(c[i]-'a'+1))%mod;
+}
+\end{lstlisting}
+

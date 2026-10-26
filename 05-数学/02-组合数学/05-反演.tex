@@ -1,0 +1,23 @@
+\subsubsection{反演}
+\begin{enumerate}
+	\item 二项式反演
+	
+	$$f(n) = \sum_{i=0}^{n} \binom{n}{i} g(i) \iff g(n) = \sum_{i=0}^{n} (-1)^{n-i} \binom{n}{i} f(i)$$
+
+$$f(k) = \sum_{i=k}^{n} \binom{i}{k} g(i) \iff g(k) = \sum_{i=k}^{n} (-1)^{i-k} \binom{i}{k} f(i)$$
+	\item 子集反演
+	$$f(S) = \sum_{T \subseteq S} g(T) \iff g(S) = \sum_{T \subseteq S} (-1)^{|S|-|T|} f(T)$$
+	\item 斯特林反演
+	$$f(n) = \sum_{k=0}^{n} \begin{Bmatrix} n \\ k \end{Bmatrix} g(k) \iff g(n) = \sum_{k=0}^{n} (-1)^{n-k} \begin{bmatrix} n \\ k \end{bmatrix} f(k)$$
+
+	$$f(k) = \sum_{i=k}^{n} \begin{Bmatrix} i \\ k \end{Bmatrix} g(i) \iff g(k) = \sum_{i=k}^{n} (-1)^{i-k} \begin{bmatrix} i \\ k \end{bmatrix} f(i)$$
+
+	其中，
+
+	$$\begin{bmatrix} n \\ k \end{bmatrix} = (n-1) \begin{bmatrix} n-1 \\ k \end{bmatrix} + \begin{bmatrix} n-1 \\ k-1 \end{bmatrix}$$
+
+	$$\begin{Bmatrix} n \\ k \end{Bmatrix} = k \begin{Bmatrix} n-1 \\ k \end{Bmatrix} + \begin{Bmatrix} n-1 \\ k-1 \end{Bmatrix}$$
+
+	边界条件：$S(n,n)=1,S(n,0)=0(n>0)$，两类都是。
+\end{enumerate}
+

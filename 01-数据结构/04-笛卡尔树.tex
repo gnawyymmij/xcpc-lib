@@ -1,0 +1,17 @@
+\subsection{笛卡尔树 (Cartesian Tree)}
+笛卡尔树 (Cartesian Tree)，一种基于键值和权值的二叉树，使用栈 O(n) 线性构建。
+\begin{lstlisting}
+ll a[10000010];
+ll l[10000010],r[10000010];
+long long x,y;
+ll st[10000010],tp;
+int main(){
+	n=d;f(i,1,n)a[i]=d;
+	st[++tp]=1;
+	f(i,2,n){
+		while(tp&&a[i]<a[st[tp]])l[i]=st[tp--];
+		if(tp)r[st[tp]]=i;st[++tp]=i;
+	}
+}
+\end{lstlisting}
+

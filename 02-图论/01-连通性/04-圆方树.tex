@@ -1,0 +1,36 @@
+\subsubsection{圆方树 (Round-Square Tree)}
+圆方树 (Block-Cut Tree)，用于处理一般图上的点双连通分量。
+\begin{lstlisting}
+ll n,m,tim;
+ll dfn[100010],low[100010];
+ll st[100010],tp,c;
+bool in[100010];
+vi e[100010];
+vi E[200010];
+void dfs(ll u,ll fa){
+	dfn[u]=low[u]=++tim;
+	st[++tp]=u;in[u]=1;
+	fe(i,e[u]){
+		ll v=e[u][i];if(v==fa)continue;
+		if(!dfn[v]){
+			dfs(v,u);low[u]=min(low[u],low[v]);
+			if(low[v]>=dfn[u]){
+				c++;E[c].pb(u),E[u].pb(c);
+				ll now;while(1){
+					now=st[tp--];in[now]=0;
+					E[now].pb(c),E[c].pb(now);
+					if(now==v)break;
+				}
+			}
+		}else if(in[v])low[u]=min(low[u],dfn[v]);
+	}
+}
+
+int main(){
+	n=c=d,m=d;
+	f(i,1,m){ll u=d,v=d;e[u].pb(v),e[v].pb(u);}
+	f(i,1,n)if(!dfn[i])dfs(i,0);
+	return 0;
+}
+\end{lstlisting}
+

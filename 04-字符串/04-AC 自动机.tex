@@ -1,0 +1,35 @@
+\subsection{AC 自动机 (Aho-Corasick)}
+字符集过大时，暴力跳 fail 是对的。
+\begin{lstlisting}
+ll ch[1000010][26];
+ll fail[1000010];
+vi e[1000010];
+void add(ll nd){ll u=1;
+	ll len=strlen(c+1);
+	f(i,1,len){
+		ll p=c[i]-'a';
+		if(!ch[u][p])ch[u][p]=++cnt;
+		u=ch[u][p];
+	}
+}queue<ll>q;
+void gtf(){
+	fail[1]=1;
+	f(i,0,25){
+		if(ch[1][i])q.push(ch[1][i]),fail[ch[1][i]]=1;
+		else ch[1][i]=1;
+	}while(!q.empty()){
+		ll u=q.front();q.pop();
+		f(i,0,25){
+			if(ch[u][i])fail[ch[u][i]]=ch[fail[u]][i],q.push(ch[u][i]);
+			else ch[u][i]=ch[fail[u]][i];
+		}
+	}
+}
+
+//字符集过大时，暴力跳 fail 是对的。用 find(u,i) 代替 ch[u][i]（getfail里和跑acam的时候）
+ll find(ll u,ll i){
+	while(u&&!ch[u][i])u=fail[u];
+	if(!u)return 1;return ch[u][i];
+}
+\end{lstlisting}
+

@@ -1,0 +1,17 @@
+\subsection{KKT}
+
+$$\begin{aligned}
+\min_{x \in \mathbb{R}^n} \quad & f(x) \\
+\text{s.t.} \quad & g_i(x) \le 0, \quad i = 1, \dots, m \\
+& h_j(x) = 0, \quad j = 1, \dots, p
+\end{aligned}$$
+
+KKT:
+
+$$\begin{aligned}
+&\text{1. Stationarity:} && \nabla f(x^*) + \sum_{i=1}^m \lambda_i^* \nabla g_i(x^*) + \sum_{j=1}^p \nu_j^* \nabla h_j(x^*) = 0 \\
+&\text{2. Primal Feasibility:} && g_i(x^*) \le 0, \quad h_j(x^*) = 0 \\
+&\text{3. Dual Feasibility:} && \lambda_i^* \ge 0 \\
+&\text{4. Complementary Slackness:} && \lambda_i^* g_i(x^*) = 0
+\end{aligned}$$
+

@@ -1,0 +1,12 @@
+\subsection{测速}
+
+\begin{lstlisting}
+auto start = std::chrono::high_resolution_clock::now();
+
+// main code here
+
+auto end = std::chrono::high_resolution_clock::now();
+std::chrono::duration<double> elapsed = end - start;
+std::cerr << "\nRunning: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+\end{lstlisting}
+

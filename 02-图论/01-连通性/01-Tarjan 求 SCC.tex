@@ -1,0 +1,25 @@
+\subsubsection{Tarjan 求 SCC (Strongly Connected Components)}
+Tarjan 算法，用于在线性时间内求解有向图的强连通分量。
+\begin{lstlisting}
+ll dfn[100010],low[100010],cur;
+ll bel[100010],scc;
+ll st[100010],tp;
+bool ins[100010];
+vi e[100010];
+void dfs(ll u){
+	dfn[u]=low[u]=++cur;
+	st[++tp]=u,ins[u]=1;
+	fe(i,e[u]){
+		ll v=e[u][i];
+		if(!dfn[v])dfs(v),low[u]=min(low[u],low[v]);
+		else if(ins[v])low[u]=min(low[u],dfn[v]);
+	}if(low[u]==dfn[u]){
+		scc++;ll now;while(1){
+			now=st[tp--];
+			ins[now]=0,bel[now]=scc;
+			if(now==u)break;
+		}
+	}
+}
+\end{lstlisting}
+

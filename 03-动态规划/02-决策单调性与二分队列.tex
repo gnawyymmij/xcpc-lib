@@ -1,0 +1,79 @@
+\subsection{决策单调性与二分队列}
+考虑一类一维分段 DP
+\[
+    f_i=\min_{0\le j<i}\{f_j+w(j+1,i)\}.
+\]
+若转移矩阵是 Monge 的，即对 $j<J\le i<I$ 有四边形不等式
+\[
+    w(j+1,i)+w(J+1,I)\le w(j+1,I)+w(J+1,i),
+\]
+则最优决策点 $p_i=\operatorname*{argmin}_j\{f_j+w(j+1,i)\}$ 单调不减。加上只与 $j$ 有关的 $f_j$ 不会破坏 Monge 性。
+
+对区间费用 $C(l,r)$，常写成
+\[
+    C(a,c)+C(b,d)\le C(a,d)+C(b,c),\qquad a\le b\le c\le d.
+\]
+在完整的二维定义域上，也可以只检查相邻的 $2\times2$ 条件
+\[
+    C(l,r)+C(l+1,r+1)\le C(l,r+1)+C(l+1,r),
+\]
+它等价于所有四边形不等式。实际题目中通常直接从费用的结构证明；例如有序点分段后到中位数的 $L_1$ 代价就是常见的 Monge 费用。
+
+二分队列维护若干候选决策 $(j,L)$，表示从位置 $L$ 开始，$j$ 是当前队列中最优的决策。由于决策单调，两个候选的优劣只会发生一次切换：插入新决策 $i$ 时，与队尾旧决策比较，并二分出新决策第一次不劣的位置；若新决策从队尾的起点起就更优，则直接弹掉队尾。查询 $f_i$ 时只需根据这些分界点移动队首。每个决策至多入队、出队一次，另有一次二分，因此总复杂度 $O(n\log n)$。
+
+下面是最小化问题的核心模板。\texttt{better(j,J,x)} 表示在终点 $x$ 处决策 $j$ 是否严格优于 $J$；相等时的 tie-break 要与 WQS 中记录的段数保持一致。
+\begin{lstlisting}
+ll dp[N];
+int cnt[N];
+struct Node{ int j,l; } q[N];
+int hd,tl;
+
+bool better(int j,int J,int i){
+    ll x=dp[j]+cost(j+1,i);
+    ll y=dp[J]+cost(J+1,i);
+    if(x!=y)return x<y;
+    return cnt[j]<cnt[J];
+}
+
+void take(int j,int i,ll extra=0){
+    dp[i]=dp[j]+cost(j+1,i)+extra;
+    cnt[i]=cnt[j]+1;
+}
+
+void insert_candidate(int i){
+    while(hd<=tl){
+        int j=q[tl].j;
+        int l=max(i+1,q[tl].l),r=n;
+
+        // old candidate is still better at n: i never becomes optimal
+        if(better(j,i,n))return;
+
+        // first position where i is no worse than j
+        while(l<r){
+            int mid=(l+r)>>1;
+            if(better(j,i,mid))l=mid+1;
+            else r=mid;
+        }
+
+        if(l==q[tl].l)--tl;          // i dominates the whole last interval
+        else{
+            q[++tl]={i,l};
+            return;
+        }
+    }
+    q[++tl]={i,i+1};
+}
+
+void solve_dp(ll extra=0){
+    dp[0]=0;cnt[0]=0;
+    hd=tl=1;q[1]={0,1};
+    for(int i=1;i<=n;i++){
+        while(hd<tl&&q[hd+1].l<=i)++hd;
+        take(q[hd].j,i,extra);
+        insert_candidate(i);
+    }
+}
+\end{lstlisting}
+
+和 WQS 合用时，令 \texttt{extra=k}，一次 \texttt{check(k)} 就是一次 $O(n\log n)$ 的上述 DP，于是总复杂度再乘一个 WQS 的二分次数。
+

@@ -1,0 +1,36 @@
+\subsubsection{树上离某个点最远的点}
+mx: 往子树去的最远（不包括自身）
+
+far：往父亲去的最远（包括自身）
+\begin{lstlisting}
+ll mx[200010],imx[200010],id[200010];
+ll dep[200010];
+ll far[200010];
+void getd(ll u,ll fa){
+    dep[u]=dep[fa]+1;mx[u]=imx[u]=0;id[u]=0;
+    for(int i=0;i<e[u].size();i++){
+        ll v=e[u][i];if(v==fa)continue;
+        getd(v,u);if(mx[v]+1>mx[u]){
+            imx[u]=mx[u];mx[u]=mx[v]+1;id[u]=v;
+        }else if(mx[v]+1>=imx[u]){
+            imx[u]=max(imx[u],mx[v]+1);
+        }
+    }
+}
+void getf(ll u,ll fa,ll mxl){
+    if(u==rt){far[u]=1;
+        for(int i=0;i<e[u].size();i++){
+            ll v=e[u][i];if(v==fa)continue;
+            getf(v,u,1);
+        }
+    }else{
+        far[u]=mxl+1;
+        for(int i=0;i<e[u].size();i++){
+            ll v=e[u][i];if(v==fa)continue;
+            if(v==id[u])getf(v,u,max(mxl+1,imx[u]+1));
+            else getf(v,u,max(mxl+1,mx[u]+1));
+        }
+    }
+}
+\end{lstlisting}
+

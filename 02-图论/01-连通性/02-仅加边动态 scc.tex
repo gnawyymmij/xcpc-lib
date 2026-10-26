@@ -1,0 +1,65 @@
+\subsubsection{仅加边动态 scc}
+每条边的生效时间是不小于他的加入时间的，整体二分这个时刻，维护 $(l,r,E)$ 表示生效时间在 $[l,r]$ 内的边。加入 $[l,mid]$ 中的边考察 scc 变化情况判断生效时间在左区间还是右区间（也可能不生效）。
+
+\begin{lstlisting}
+int dfn[100010],low[100010],tim;
+int st[100010],tp;
+bool in[100010];
+int bel[100010],scc;
+vector<int>e[100010];
+vector<int>node;
+void dfs(int u){
+    dfn[u]=low[u]=++tim;
+    st[++tp]=u,in[u]=1;
+    for(auto v:e[u]){
+        if(!dfn[v])dfs(v),low[u]=min(low[u],low[v]);
+        else if(in[v])low[u]=min(low[u],dfn[v]);
+    }if(dfn[u]==low[u]){
+        scc++;int now;while(1){
+            now=st[tp--];
+            bel[now]=scc;in[now]=0;
+            if(now==u)break;
+        }
+    }
+}
+void clear(){
+    tim=0,tp=0;scc=0;
+    for(auto u:node)dfn[u]=low[u]=0,bel[u]=0,e[u].clear();
+    node.clear();
+}
+int U[100010],V[100010];
+vector<int>con[100010];
+int fa[100010];
+int find(int x){
+    if(fa[x]==x)return x;
+    return fa[x]=find(fa[x]);
+}
+void un(int u,int v){
+    if(find(u)==find(v))return;
+    u=find(u),v=find(v);
+    fa[u]=v;
+}
+void work(int l,int r,vector<array<int,3>>&E){// E 中储存 (u,v,i)，表示在加入全部 $[1,l-1]$ 的边后，u 和 v 所在的 scc 编号。这样接着在这个图上做可以简化。
+    // printf("Working on [%d, %d]\n",l,r);
+    // for(auto [u,v,i]:E)printf("(%d, %d, %d) ",u,v,i);cout<<endl;
+    int mid=(l+r)>>1;
+    vector<array<int,3>> e1,e2;e1.clear(),e2.clear();
+    for(auto [u,v,i]:E){
+        node.pb(u),node.pb(v);
+        if(i<=mid)e[u].pb(v);
+    }
+    for(auto u:node)if(!dfn[u])dfs(u);
+    if(l==r){
+        for(auto [u,v,i]:E){
+            if(bel[u]==bel[v])un(U[i],V[i]);//有了“生效”状态后即可转化为并查集维护。
+        }clear();
+        return;
+    }
+    for(auto [u,v,i]:E){
+        if(bel[u]!=bel[v])e2.pb({bel[u],bel[v],i});
+        else if(i<=mid&&bel[u]==bel[v])e1.pb({u,v,i});
+    }clear();
+    work(l,mid,e1),work(mid+1,r,e2);
+}
+\end{lstlisting}
+

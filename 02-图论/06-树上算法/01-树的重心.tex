@@ -1,0 +1,30 @@
+\subsubsection{树的重心 (Tree Centroid)}
+从点分模板贺的，所以有fl数组表示有没有被处理过。
+\begin{lstlisting}
+ll sz[100010],g,mn;
+ll f[100010];
+bool fl[100010];
+ll siz;
+void dfsz(ll u,ll fa){if(fl[u])return;
+	f[u]=fa;siz++;
+	sz[u]=1;for(int i=hd[u];i;i=e[i].nx){
+		ll v=e[i].v,w=e[i].w;
+		if(v==fa||fl[v])continue;
+		dfsz(v,u),sz[u]+=sz[v];
+	}
+}
+void dfsg(ll u,ll fa){if(fl[u])return;
+	ll mx=-1;
+	if(f[u]!=0)mx=siz-sz[u];
+	for(int i=hd[u];i;i=e[i].nx){
+		ll v=e[i].v,w=e[i].w;
+		if(v==fa||fl[v])continue;
+		dfsg(v,u),mx=max(mx,sz[v]);
+	}if(mx<mn){mn=mx,g=u;}
+}
+void getg(ll rt){
+	mn=0x7f7f7f7f;siz=0;
+	dfsz(rt,0),dfsg(rt,0);
+}
+\end{lstlisting}
+

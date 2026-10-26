@@ -1,0 +1,44 @@
+\subsubsection{杜教筛 (Du's Sieve)}
+杜教筛，用于在亚线性时间内求解数论函数（如 $\mu, \phi$）的前缀和。
+设 $S(n) = \sum_{i=1}^n f(i)$，我们构造 $g$ 使得 $\sum (f*g)$ 和 $\sum g$ 易于计算。
+其核心公式为：
+$$ g(1)S(n) = \sum_{i=1}^n (f*g)(i) - \sum_{i=2}^n g(i)S(\lfloor n/i \rfloor) $$
+\begin{lstlisting}
+ll n,m;
+ll pr[2000010];
+bool vis[2000010];
+ll mu[2000010];
+ll ph[2000010];
+void gt(){
+	mu[1]=ph[1]=1;
+	f(i,2,2000000){
+		if(!vis[i])pr[++cnt]=i,mu[i]=-1,ph[i]=i-1;
+		for(int j=1;j<=cnt&&i*pr[j]<=2000000;j++){
+			vis[i*pr[j]]=1;if(i%pr[j]==0){
+				ph[i*pr[j]]=ph[i]*pr[j];break;
+			}mu[i*pr[j]]=-mu[i],ph[i*pr[j]]=ph[i]*ph[pr[j]];
+		}
+	}f(i,2,2000000)mu[i]+=mu[i-1],ph[i]+=ph[i-1];
+}
+unordered_map<ll,ll>smu;
+unordered_map<ll,ll>sph;
+ll Mu(ll n){
+	if(n<=2000000)return mu[n];
+	if(smu[n])return smu[n];
+	ll res=1;for(ll l=2,r;l<=n;l=r+1){
+		r=n/(n/l);res-=(r-l+1)*Mu(n/l);
+	}return smu[n]=res;
+}ll Ph(ll n){
+	if(n<=2000000)return ph[n];
+	if(sph[n])return sph[n];
+	ll res=n*(n+1)/2;for(ll l=2,r;l<=n;l=r+1){
+		r=n/(n/l);res-=(r-l+1)*Ph(n/l);
+	}return sph[n]=res;
+}
+int main(){
+	gt();wt{
+		n=d;printf("%lld %lld\n",Ph(n),Mu(n));
+	}
+	return 0;
+}
+\end{lstlisting}

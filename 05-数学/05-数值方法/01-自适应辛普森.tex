@@ -1,0 +1,15 @@
+\subsubsection{自适应辛普森 (Adaptive Simpson's Rule)}
+自适应辛普森积分，用于数值计算函数在区间上的定积分。
+\begin{lstlisting}
+double f(double x){return (m*x+n)/(a*x+b);}//在x处的函数值
+double simp(double L,double R){return ((R-L)*(f(L)+f(R)+4*f((L+R)/2)))/6;}
+double asr(double L,double R,double eps,double ans){
+	double mid=(L+R)/2;
+	double x=simp(L,mid),y=simp(mid,R);
+	if(fabs(x+y-ans)<=15*eps)return x+y+(x+y-ans)/15;
+	return asr(L,mid,eps/2,x)+asr(mid,R,eps/2,y);
+}
+
+printf("%.6lf",asr(l,r,1e-6,simp(l,r)));
+\end{lstlisting}
+

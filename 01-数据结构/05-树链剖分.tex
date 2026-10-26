@@ -1,0 +1,75 @@
+\subsection{树链剖分 (Heavy-Light Decomposition)}
+树链剖分，将树上问题转化为序列问题，常配合线段树使用。
+\begin{lstlisting}
+ll dfn[100010],de[100010],fa[100010],son[100010];
+ll sz[100010],top[100010],rk[100010];
+void dfs1(ll u,ll fat){
+    fa[u]=fat;de[u]=de[fat]+1;sz[u]=1;
+    for(int i=hd[u];i;i=e[i].nx){
+        ll v=e[i].v;if(v==fat)continue;
+        dfs1(v,u);
+        if(sz[v]>sz[son[u]])son[u]=v;
+        sz[u]+=sz[v];
+    }
+}void dfs2(ll u,ll tp){
+    top[u]=tp;dfn[u]=++tim;rk[tim]=u;
+    if(son[u])dfs2(son[u],tp);
+    for(int i=hd[u];i;i=e[i].nx){
+        ll v=e[i].v;if(v==fa[u]||v==son[u])continue;
+        dfs2(v,v);
+    }
+}
+ll a[100010];
+#define ls(p) (p<<1)
+#define rs(p) (p<<1|1)
+ll t[100010<<2];
+ll tg[100010<<2];
+void upd(ll p){t[p]=(t[ls(p)]+t[rs(p)])%mod;}
+void build(ll l,ll r,ll p){
+    if(l==r){t[p]=a[rk[l]];return;}
+    ll mid=l+r>>1;
+    build(l,mid,ls(p));
+    build(mid+1,r,rs(p));
+    upd(p);
+}
+void pd(ll p,ll l,ll r){
+    if(tg[p]==0)return;ll mid=l+r>>1;
+    tg[ls(p)]=(tg[ls(p)]+tg[p])%mod;
+    tg[rs(p)]=(tg[rs(p)]+tg[p])%mod;
+    t[ls(p)]=(t[ls(p)]+tg[p]*(mid-l+1))%mod;
+    t[rs(p)]=(t[rs(p)]+tg[p]*(r-mid))%mod;
+    tg[p]=0;
+}
+void add(ll l,ll r,ll p,ll L,ll R,ll k){
+    if(L<=l&&r<=R){t[p]=(t[p]+k*(r-l+1))%mod;tg[p]=(tg[p]+k)%mod;return;}
+    pd(p,l,r);
+    ll mid=l+r>>1;
+    if(mid>=L)add(l,mid,ls(p),L,R,k);
+    if(mid<R)add(mid+1,r,rs(p),L,R,k);
+    upd(p);
+}ll get(ll l,ll r,ll p,ll L,ll R){
+    if(L<=l&&r<=R)return t[p];
+    pd(p,l,r);
+    ll mid=l+r>>1,res=0;
+    if(mid>=L)res+=get(l,mid,ls(p),L,R);
+    if(mid<R)res+=get(mid+1,r,rs(p),L,R);
+    return res%mod;
+}
+void chad(ll u,ll v,ll k){
+    while(top[u]!=top[v]){
+        if(de[top[u]]<de[top[v]])swap(u,v);
+        add(1,n,1,dfn[top[u]],dfn[u],k);
+        u=fa[top[u]];
+    }if(dfn[u]>dfn[v])swap(u,v);
+    add(1,n,1,dfn[u],dfn[v],k);
+}ll chs(ll u,ll v){ll res=0;
+    while(top[u]!=top[v]){
+        if(de[top[u]]<de[top[v]])swap(u,v);
+        res+=get(1,n,1,dfn[top[u]],dfn[u]);
+        u=fa[top[u]];
+    }if(dfn[u]>dfn[v])swap(u,v);
+    res+=get(1,n,1,dfn[u],dfn[v]);
+    return res%mod;
+}
+\end{lstlisting}
+

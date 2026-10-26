@@ -1,0 +1,17 @@
+\subsubsection{LGV 引理 (Weighted LGV Lemma)}
+
+LGV 引理，适用于 **DAG** 上带权不相交路径问题。
+设边权为 $w(e)$（可为数值或多项式），定义路径 $P$ 的权值为 $\omega(P) = \prod_{e \in P} w(e)$。
+构造矩阵 $M$，其中 $M_{ij}$ 为起点 $a_i$ 到终点 $b_j$ 的所有路径权值之和：
+
+$$
+M_{ij} = \sum_{P: a_i \to b_j} \omega(P) = \sum_{P: a_i \to b_j} \prod_{e \in P} w(e)
+$$
+
+若图满足条件（如平面图且起点终点排序使得仅 $\sigma=id$ 存在不相交路径），则所有不相交路径组 $(P_1, \dots, P_n)$ 的权值积之和为：
+
+$$
+\det(M) = \sum_{(P_1, \dots, P_n) \in \text{Disjoint}} \prod_{k=1}^n \omega(P_k)
+$$
+
+\noindent \textbf{注}：若求不相交路径总数，设 $w(e)=1$；若求路径权值总和，设 $w(e)=x^{val}$ 并做多项式运算。

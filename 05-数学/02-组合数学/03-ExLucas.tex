@@ -1,0 +1,52 @@
+\subsubsection{ExLucas (Extended Lucas Theorem)}
+扩展 Lucas 定理，用于求解模任意数 $P$ 的大组合数。
+\begin{lstlisting}
+ll n,m,P;
+ll pr[1000010],cnt;
+bool vis[1000010];
+void gt(){
+	f(i,2,1000000){
+		if(!vis[i])pr[++cnt]=i;
+		for(int j=1;j<=cnt&&i*pr[j]<=1000000;j++){
+			vis[i*pr[j]]=1;if(i%pr[j]==0)break;
+		}
+	}
+}
+ll eX,eY,eC;
+void exgcd(ll a,ll b){
+	if(b==0){eX=eC/a,eY=0;return;}
+	exgcd(b,a%b);ll x=eX,y=eY;
+	eX=y,eY=x-a/b*y;
+}ll inv(ll x,ll p){eC=1;exgcd(x,p);return (eX%p+p)%p;}
+ll F(ll n,ll p,ll pk){
+	if(n==0)return 1;
+	ll res=F(n/p,p,pk);
+	ll g=1;f(i,1,pk)if(i%p)g=g*i%pk;
+	g=qp(g,n/pk,pk);f(i,n/pk*pk,n)if(i%p)g=g*(i%pk)%pk;
+	return res*g%pk;
+}ll c(ll n,ll p){
+	ll res=0;while(n)res+=n/p,n/=p;
+	return res;
+}ll C(ll n,ll m,ll P){
+	if(n<m)return 0;
+	ll A=-1,B=-1,nn=P;
+	f(i,1,cnt)if(nn%pr[i]==0){
+		ll p=pr[i],pk=1;
+		while(nn%p==0)nn/=p,pk*=p;
+		ll AA=F(n,p,pk)*inv(F(m,p,pk),pk)%pk*inv(F(n-m,p,pk),pk)%pk;
+		AA=AA*(qp(p,c(n,p)-c(m,p)-c(n-m,p),pk))%pk;ll BB=pk;
+		if(A==-1)A=AA,B=BB;
+		else {
+			if(A<AA)swap(A,AA),swap(B,BB);eC=A-AA;
+			exgcd(B,BB);eX=((-eX)%BB+BB)%BB;
+			BB*=B;A=(eX*B+A)%BB;B=BB;
+		}
+	}return A;
+}
+int main(){
+	gt();n=d,m=d,P=d;
+	printf("%lld",C(n,m,P));
+	return 0;
+}
+\end{lstlisting}
+

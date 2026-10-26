@@ -1,0 +1,57 @@
+\subsubsection{Pollard-Rho}
+Pollard's Rho 算法，一种用于大整数质因数分解的随机算法。
+\begin{lstlisting}
+ll qp(ll a,ll b,ll p){a%=p;
+	ll ans=1;while(b){
+		if(b&1)ans=(__int128)ans*a%p;
+		a=(__int128)a*a%p;b>>=1;
+	}return ans;
+}ll n,m;
+ll tst[7]={2,325,9375,28178,450775,9780504,1795265022};
+/*
+unsigned : 2 7 61
+ull : 2 325 9375 28178 450775 9780504 1795265022
+*/
+bool miller(ll x){if(x<2)return 0;
+    if(x==2||x==3||x==5||x==7||x==11||x==13)return 1;
+	ll u=x-1,t=0;while(u%2==0)u/=2,t++;
+	f(T,0,6){
+		ll a=tst[T];
+		if(x==a)return 1;
+		ll b=qp(a,u,x),bb;//if(b==1||b==x-1)continue;
+		f(i,1,t){
+			bb=(__int128)b*b%x;
+			if(bb==1&&b!=1&&b!=x-1)return 0;b=bb;
+		}if(b!=1)return 0;
+	}return 1;
+}ll pollard(ll p){
+	ll c=(ll)rand()%p+1;
+	ll s=0,t=0,mul=1,k=1,i=0;
+	for(k=1;;k<<=1,s=t,mul=1){
+		for(i=1;i<=k;i++){
+			t=((__int128)t*t+c)%p;
+			mul=(__int128)mul*abs(s-t)%p;
+			if(i%127==0){
+				ll g=__gcd(mul,p);
+				if(g>1)return g;
+			}
+		}ll g=__gcd(mul,p);
+		if(g>1)return g;
+	}
+}ll mxp;
+void work(ll p){
+	if(p<2||p<=mxp)return;
+	if(miller(p)){mxp=max(mxp,p);return;}
+	ll k=p;while(k==p)k=pollard(p);
+	while(p%k==0)p/=k;
+	work(p),work(k);
+}
+int main(){srand(time(0));
+	wt{	ll p=d;mxp=0;
+		work(p);if(mxp==p)puts("Prime");
+		else printf("%lld\n",mxp);
+	}
+	return 0;
+}
+\end{lstlisting}
+

@@ -1,0 +1,19 @@
+\subsection{RMQ (ST 表)}
+ST 表 (Sparse Table)，用于 O(1) 查询区间最值 (RMQ)。
+\begin{lstlisting}
+ll s[100010][20];
+ll lg[100010];
+ll get(ll l,ll r){
+  ll L=r-l+1,Lg=lg[L];
+  return max(s[l][Lg],s[r-(1<<Lg)+1][Lg]);
+}
+int main(){
+	n=d,m=d;
+	f(i,1,n)s[i][0]=d;
+	f(j,1,19)f(i,1,n){
+		if(i+(1<<(j-1))>n)s[i][j]=s[i][j-1];
+		else s[i][j]=max(s[i][j-1],s[i+(1<<(j-1))][j-1]);
+	}f(i,2,n)lg[i]=lg[i/2]+1;
+}
+\end{lstlisting}
+

@@ -1,0 +1,69 @@
+\subsubsection{二分图最小权完美匹配 (KM / SSP)}
+Kuhn-Munkres (KM) 算法，用于 O(n\textasciicircum 3) 求解二分图最小/大权完美匹配。
+\begin{lstlisting}
+ll cst[1010][1010];
+#define inf 0x3f3f3f3f3f3f3f3f
+void KM(int n,int m){
+    vector<ll>l(n+1),r(m+1);
+    vector<int>p(m+1),ans(n+1);
+    f(i,1,n){
+        vector<ll>dis(m+1,inf);
+        vector<int>pre(m+1),done(m+1);
+        int x,v,u=0;
+        for(p[0]=i;x=p[u];u=v){
+            done[u]=1;
+            ll mn=inf;
+            f(j,1,m)if(!done[j]){
+                ll w=cst[x][j]-l[x]-r[j];
+                if(w<dis[j])dis[j]=w,pre[j]=u;
+                if(dis[j]<mn)mn=dis[j],v=j;
+            }
+            f(j,0,m){
+                if(done[j])l[p[j]]+=mn,r[j]-=mn;
+                else dis[j]-=mn;
+            }
+        }
+        for(int v;u;u=v)v=pre[u],p[u]=p[v];
+    }f(j,1,m)ans[p[j]]=j;
+    // cout<<(-r[0])<<endl;//最小权
+    // f(j,1,m)cout<<p[j]<<" ";cout<<endl;//右部点的匹配点。左部点匹配点是 ans。
+}
+\end{lstlisting}
+
+\paragraph{另一种费用流做法（SSP）}
+板子题没 KM 快。$O(|match|(|V|^2+|E|))$。
+\begin{lstlisting}
+#define inf 0x3f3f3f3f3f3f3f3f
+vector<pair<int,ll>>e[1010];//左边第 u 个点和右边第 v 个点，权为 w，建边 (u,{v,w})
+bool down(ll &x,ll y){return x>y?x=y,1:0;}
+void KM(int n,int m){
+    vector<ll>h(n+1),rv(m+1);
+    vector<int>R(m+1);
+    ll cost=0;
+    for(;;){
+        vector<ll>dis(n+1);
+        vector<int>vis(n+1),p0(n+1),p1(m+1);
+        f(i,0,m)dis[R[i]]=inf;
+        for(int x=0;vis[x]^=1;){
+            ll mn=inf;
+            for(auto [j,w]:e[x])if(down(dis[R[j]],dis[x]+w-rv[j]))p0[R[j]]=j,p1[j]=x;
+            f(j,1,n)if(!vis[j]&&down(mn,dis[j]-h[j]))x=j;
+        }if(dis[0]>=inf/2)break;
+        for(int r=p0[0];r;r=p0[R[r]]){
+            rv[r]+=dis[R[r]]-dis[p1[r]];
+            R[r]=p1[r];
+        }cost+=dis[0],h=dis;
+
+        // cout<<cost<<endl;
+        // for(auto _:R)cout<<_<<" ";cout<<endl;
+        // for(auto _:rv)cout<<_<<" ";cout<<endl;
+    }
+    //cost: 最小权
+    //R: 右部点的匹配点
+    //rv: 右部点匹配边的权值
+    //注意到每次增广一条路径，匹配数增加 1，意味着可以得到恰有多少个匹配时候的最小权
+    // cout<<cost<<endl;
+    // f(i,1,m)cout<<R[i]<<" ";cout<<endl;
+}
+\end{lstlisting}
+

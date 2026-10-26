@@ -1,0 +1,11 @@
+\subsubsection{BEST 定理 (BEST Theorem)}
+
+BEST 定理，用于求解\textbf{有向欧拉图}的欧拉回路计数。
+设 $G=(V, E)$ 是有向欧拉图（入度等于出度且连通），$t_{root}$ 为以任意点 $root$ 为根的\textbf{根向树形图}（Arborescence）个数，则 $G$ 的欧拉回路总数 $ec(G)$ 为：
+
+$$
+ec(G) = t_{root} \cdot \prod_{v \in V} (\deg(v) - 1)!
+$$
+
+\noindent 注：$t_{root}$ 通常配合\textbf{矩阵树定理}（Matrix Tree Theorem）求解。
+

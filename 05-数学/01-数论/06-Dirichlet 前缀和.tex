@@ -1,0 +1,7 @@
+\subsubsection{Dirichlet 前缀和 (Dirichlet Prefix Sum)}
+Dirichlet 前缀和，用于快速计算形如 $f(i) = \sum_{x|i}a_x$ 的函数。
+$$ \sum_{x|i}a_x \to a_i $$
+\begin{lstlisting}
+for(i=1;i<=cnt;++i)for(j=1;j*pr[i]<=n;++j)a[j*pr[i]]+=a[j];
+\end{lstlisting}
+

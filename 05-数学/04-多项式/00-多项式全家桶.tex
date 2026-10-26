@@ -1,0 +1,246 @@
+多项式全家桶，包含 NTT, Inv, Ln, Exp, Pow, Div 等操作。
+\begin{lstlisting}
+#include<bits/stdc++.h>
+using namespace std;
+#define ll long long
+#define f(i,a,b) for(int i=a;i<=b;++i)
+#define wt int tt=d;while(tt--)
+#define py puts("Yes")
+#define pn puts("No")
+#define fe(i,e) for(int i=0;i<e.size();i++)
+#define vi vector<ll>
+inline ll rd() {
+	ll x=0,f=1;
+	char c=getchar();
+	while(!isdigit(c)){if(c=='-')f=-1;c=getchar();}
+	while(isdigit(c))x=x*10+c-'0',c=getchar();
+	return x*f;
+}
+ll dx[4]={0,1,0,-1};
+ll dy[4]={1,0,-1,0};
+#define d rd()
+#define pb push_back
+const ll Bit=21;
+const ll PoL=(1<<Bit)+5;
+ll but[PoL],pw[2][PoL],Curl=-1;
+void out(ll *a,ll n){f(i,0,n)printf("%lld ",a[i]);puts("");}
+const ll mod=998244353,G=3,Gi=332748118;
+ll qp(ll a,ll b=mod-2){ll ans=1;
+	while(b){
+		if(b&1)ans=ans*a%mod;
+		a=a*a%mod;b>>=1;
+	}return ans%mod;
+}
+namespace poly{
+	ll jc[PoL+10],inv[PoL+10],inc[PoL+10];
+	ll w[PoL]={1},qwq=0,Curl=-1;
+	// ll usla[PoL],uslb[PoL];
+	bool hpre=0;
+	void pre(){
+		if(hpre)return;hpre=1;
+		jc[0]=jc[1]=inc[0]=inc[1]=inv[0]=inv[1]=1;
+		f(i,2,PoL-1)jc[i]=jc[i-1]*i%mod,inv[i]=(mod-mod/i)*inv[mod%i]%mod,
+		inc[i]=inc[i-1]*inv[i]%mod;
+	}
+	#define ck(x) ((x)>=mod?(x)-mod:(x))
+	void revbit(ll k){
+		if(Curl==k)return;Curl=k;
+		f(i,0,k-1)but[i]=but[i>>1]>>1|((i&1)?(k>>1):0);
+	}
+	ll NTT(ll *a,ll *to,ll n,ll o){
+		ll _n=1;while(_n<=n)_n<<=1;n=_n;
+		revbit(n);qwq=0;
+		ll inv=qp(n);
+		
+		// memcpy(to,a,sizeof(to));
+		f(i,0,n-1)to[i]=a[i];
+		f(i,0,n-1)if(i<but[i])swap(to[i],to[but[i]]);
+		
+		for(int l=1;l<n;l<<=1){qwq++;
+			ll Wn=qp((o==1?G:Gi),((mod-1)/(l<<1)));
+			for(int i=1;i<l;i++)w[i]=w[i-1]*Wn%mod;
+			for(int j=0;j<n;j+=l+l){
+				for(int i=0;i<l;i++){
+					int tt=w[i]*to[i|j|l]%mod;
+					to[i|j|l]=mod+to[i|j]-tt;
+					to[i|j]=to[i|j]+tt;
+				}
+			}if(qwq%9==0)f(i,0,n-1)to[i]%=mod;
+		}if(o==1)inv=1;
+		f(i,0,n-1)to[i]=to[i]*inv%mod;
+		return n-1;
+	}
+	void Mul(ll *f,ll *g,ll *to,ll n,ll m){
+		static ll _f[PoL],_g[PoL],_n,_m;_n=n,_m=m;
+		f(i,0,_n)_f[i]=f[i];
+		f(i,0,_m)_g[i]=g[i];
+		_m+=_n,_n=1;
+		_n=NTT(_f,_f,_m,1);NTT(_g,_g,_m,1);
+		f(i,0,_n)to[i]=_f[i]*_g[i]%mod;
+		NTT(to,to,_m,-1);
+		f(i,_m+1,_n)to[i]=0;
+		f(i,0,_n)_f[i]=_g[i]=0;
+	}
+	void Inv(ll *a,ll *to,ll *usl,ll n){//a!=to
+		ll k=1;to[0]=qp(a[0]);
+		while(k<=n){k<<=1;
+			f(i,0,k-1)usl[i]=a[i];
+			NTT(to,to,k*2-1,1),NTT(usl,usl,k*2-1,1);
+			f(i,0,k*2-1)to[i]=(2-usl[i]*to[i]%mod+mod)%mod*to[i]%mod;
+			NTT(to,to,k*2-1,-1);f(i,k,k*2-1)to[i]=0;
+		}
+	}
+	void Dev(ll *a,ll *to,ll n){
+		f(i,0,n-1)to[i]=a[i+1]*(i+1)%mod;to[n]=0;
+	}
+	void Int(ll *a,ll *to,ll n){pre();
+		for(int i=n+1;i>=1;i--)to[i]=a[i-1]*inv[i]%mod;
+		to[0]=0;//to[0]=原函数的常数项
+	}
+	void Ln(ll *a,ll *to,ll *usl,ll n){//a!=to
+		f(i,1,4*n)usl[i]=0;
+		Inv(a,to,usl,n);
+		f(i,0,n)usl[i]=a[i];Dev(a,a,n);
+		ll len=NTT(to,to,2*n,1);NTT(a,a,2*n,1);
+		f(i,0,len)to[i]=to[i]*a[i]%mod;
+		NTT(to,to,2*n,-1);f(i,0,n)a[i]=usl[i];
+		Int(to,to,len);
+		f(i,1,4*n)usl[i]=0;
+	}
+	void work(ll *a,ll *to,ll *f,ll *g,ll l,ll r){
+		if(l==r){
+			to[l]=to[l]*inv[l]%mod;
+			return;
+		}ll mid=l+r>>1;
+		work(a,to,f,g,l,mid);ll lf=-1,lg=-1;
+		f(i,l,mid)f[++lf]=to[i];f(i,0,r-1-l)g[++lg]=a[i];
+		ll len=NTT(f,f,lf+lg,1);NTT(g,g,lf+lg,1);
+		f(i,0,len)f[i]=f[i]*g[i]%mod;
+		NTT(f,f,lf+lg,-1);
+		f(i,mid+1,r)to[i]=(to[i]+f[i-1-l])%mod;
+		f(i,0,len)f[i]=g[i]=0;
+		work(a,to,f,g,mid+1,r);
+	}void exp(ll *a,ll *to,ll *f,ll *g,ll n){//a!=to
+		f(i,1,4*n)f[i]=g[i]=0;
+		pre();
+		Dev(a,a,n);to[0]=1;
+		work(a,to,f,g,0,n);
+	}
+	ll lshift(ll *a,ll n,ll t){//a[t]->a[0]
+		f(i,0,n-t)a[i]=a[i+t];
+		return n-t;
+	}ll rshift(ll *a,ll n,ll t){//a[0]->a[t]
+		for(int i=n+t;i>=t;i--)a[i]=a[i-t];
+		f(i,0,t-1)a[i]=0;
+		return n+t;
+	}void mul(ll *a,ll n,ll k){
+		f(i,0,n)a[i]=a[i]*k%mod;
+	}
+	void pwr(ll *a,ll *to,ll *f,ll *g,ll *h,ll n,ll m){//a!=to
+		f(i,1,4*n)to[i]=f[i]=g[i]=h[i]=0;
+		ll t=0;
+		if(a[0]==0){
+			f(i,0,n)if(a[i]!=0){t=i;break;}
+			if(t==0||m*t>n)return;
+		}n=lshift(a,n,t);
+		ll C=a[0],iv=qp(C);
+		mul(a,n,iv);Ln(a,h,f,n);
+		mul(h,n,m);exp(h,to,f,g,n);
+		iv=qp(C,m);mul(to,n,iv);
+		n=rshift(to,n,t*m);n=n-t*m+t;
+	}
+	void div(ll *f,ll *g,ll *gr,ll *gg,ll *ff,ll *Q,ll *R,ll n,ll m){
+		f(i,0,4*n)gr[i]=ff[i]=0;
+		reverse(f,f+n+1);reverse(g,g+m+1);
+		Inv(g,gr,ff,n-m+1);
+		ll len=NTT(f,ff,2*n,1);NTT(gr,gg,len,1);
+		f(i,0,len)ff[i]=ff[i]*gg[i]%mod;
+		NTT(ff,Q,len,-1);reverse(Q,Q+n-m+1);
+		f(i,n-m+1,len)Q[i]=0;
+		reverse(g,g+m+1);
+		len=NTT(Q,ff,n*2,1);NTT(g,gr,n*2,1);
+		f(i,0,len)ff[i]=ff[i]*gr[i]%mod;
+		NTT(ff,ff,len,-1);
+		reverse(f,f+n+1);
+		f(i,0,n)R[i]=(f[i]-ff[i]+mod)%mod;
+	}
+}
+using namespace poly;
+ll f[PoL],g[PoL],ff[PoL],gg[PoL],hh[PoL];
+ll n,m,mm,lim;
+int main(){
+	return 0;
+}
+\end{lstlisting}
+
+vector 精简版（更新至 Inv）
+\begin{lstlisting}
+ll but[(1<<21)+5],w[(1<<21)+5];
+const ll mod=998244353,G=3,Gi=332748118;
+ll qp(ll a,ll b=mod-2){ll ans=1;
+	while(b){
+		if(b&1)ans=ans*a%mod;
+		a=a*a%mod;b>>=1;
+	}return ans%mod;
+}
+void revbit(ll k){
+    f(i,0,k-1)but[i]=but[i>>1]>>1|((i&1)?(k>>1):0);
+}
+#define ck(x) ((x)>=mod?(x)-mod:(x))
+void NTT(vector<ll> &a,ll o){
+    ll n=a.size()-1;
+    ll _n=1;while(_n<=n)_n<<=1;
+    n=_n;a.resize(n,0);
+    
+    revbit(n);ll qwq=0;
+	ll inv=qp(n);
+    f(i,0,n-1)if(i<but[i])swap(a[i],a[but[i]]);
+    // for(auto _:a)cout<<_<<" ";cout<<endl;
+    for(int l=1;l<n;l<<=1){qwq++;
+        ll Wn=qp((o==1?G:Gi),((mod-1)/(l<<1)));
+        w[0]=1;for(int i=1;i<l;i++)w[i]=w[i-1]*Wn%mod;
+        for(int j=0;j<n;j+=l+l){
+            for(int i=0;i<l;i++){
+                int tt=w[i]*a[i|j|l]%mod;
+                a[i|j|l]=mod+a[i|j]-tt;
+                a[i|j]=a[i|j]+tt;
+            }
+        }if(qwq==9){
+            qwq=0;
+            f(i,0,n-1)a[i]%=mod;
+        }
+    }if(o==1)inv=1;
+    f(i,0,n-1)a[i]=a[i]%mod*inv%mod;
+}
+vector<ll> Mul(vector<ll> a,vector<ll>b){
+    ll n=a.size()-1,m=b.size()-1;
+    a.resize(n+m+1,0),b.resize(n+m+1,0);
+    NTT(a,1);NTT(b,1);
+    f(i,0,a.size()-1)a[i]=a[i]*b[i]%mod;
+    NTT(a,-1);a.resize(n+m+1);
+    return a;
+}
+
+vector<ll> Inv(vector<ll> &a){
+    if(a.empty()||a[0]==0){
+        cerr<<"Err inverse don't exist.\n";
+        assert(0);
+    }
+    int n=a.size();
+    vector<ll>R(1,qp(a[0]));
+    for (int k=1;k<n;k<<=1) {
+        vector<ll>Q(a.begin(),a.begin()+min(n,k*2));
+        vector<ll>S=R;
+        S.resize(k*4,0);
+        Q.resize(k*4,0);
+        NTT(S,1);NTT(Q,1);
+        for (int i=0;i<k*4;i++)
+            S[i]=S[i]*(2+mod-S[i]*Q[i]%mod)%mod;
+        NTT(S,-1);
+        R.assign(S.begin(),S.begin()+k*2);
+    }
+    R.resize(n);
+    return R;
+}
+\end{lstlisting}
+

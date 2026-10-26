@@ -1,0 +1,9 @@
+\subsubsection{Exgcd (Extended Euclidean Algorithm)}
+扩展欧几里得算法，用于求解形如 $ax + by = c$ 的不定方程。
+\begin{lstlisting}
+void exgcd(ll a,ll b){
+	if(b==0){x=c/a;y=0;return;}
+	exgcd(b,a%b);ll xx=x,yy=y;
+	x=yy,y=xx-a/b*yy;
+}
+\end{lstlisting}

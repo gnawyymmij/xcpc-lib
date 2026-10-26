@@ -1,0 +1,48 @@
+\subsection{WQS 二分}
+WQS 二分（Alien Trick）用于“恰好选 $m$ 个”的最优化问题。设原 DP 的一个方案代价为 $V$，使用了 $c$ 段（或选了 $c$ 个物品），给每一段附加代价 $k$ 后，转而最小化
+\[
+    V+kc.
+\]
+当 $k$ 增大时，最优方案使用的段数 $c(k)$ 单调不增，因此可以二分 $k$，把一维“段数”从 DP 状态中消掉。若目标为恰好 $m$ 段，在边界处有
+\[
+    \operatorname{ans}=F_k(n)-km.
+\]
+
+适用时需要确认两件事：一是加权后的最优段数关于 $k$ 单调；二是要恢复的 $(c,V)$ 点确实位于这些方案的下凸包上，也就是关于段数的最优值具有所需的离散凸性。第二点不能只由“段数单调”推出，需要结合题目的费用结构证明；很多满足四边形不等式的分段 DP 会出现这种结构。整数代价下通常直接二分整数 $k$；若需要非整数斜率，则按题目精度扩大或改为实数处理。
+
+实现中 DP 同时记录 $(\text{cost},\text{cnt})$。求最小值时若加权代价相同，通常取更小的 $\text{cnt}$，这样 $c(k)$ 在二分边界处定义稳定。下面是可复用核心：
+\begin{lstlisting}
+struct State{
+    ll v; int cnt;
+};
+State dp[N];
+
+bool better(State a,State b){
+    if(a.v!=b.v)return a.v<b.v;
+    return a.cnt<b.cnt;              // min problem: tie -> fewer groups
+}
+
+int check(ll k){
+    dp[0]={0,0};
+    for(int i=1;i<=n;i++){
+        dp[i]={INF,0};
+        for(int j=0;j<i;j++){
+            State t={dp[j].v+cost(j+1,i)+k,dp[j].cnt+1};
+            if(better(t,dp[i]))dp[i]=t;
+        }
+    }
+    return dp[n].cnt;
+}
+
+ll wqs(int m,ll L,ll R){
+    while(L<R){
+        ll mid=(L+R)>>1;
+        if(check(mid)<=m)R=mid;
+        else L=mid+1;
+    }
+    check(L);
+    return dp[n].v-L*m;
+}
+\end{lstlisting}
+上面只展示 WQS 本身，\texttt{check} 内部仍是 $O(n^2)$；实际使用时再套斜率优化、决策单调性等优化即可。
+

@@ -1,0 +1,19 @@
+\subsection{KMP}
+Knuth-Morris-Pratt 算法，用于在线性时间内进行字符串匹配（在 c 串中找 s 串）。
+\begin{lstlisting}
+char c[1000010],s[1000010];
+ll nx[1000010];
+int main(){
+	cin>>c+1>>s+1;
+	n=strlen(c+1),m=strlen(s+1);
+	ll j=0;f(i,2,m){
+		while(j&&s[j+1]!=s[i])j=nx[j];
+		if(s[j+1]==s[i])j++;nx[i]=j;
+	}j=0;f(i,1,n){
+		while(j&&s[j+1]!=c[i])j=nx[j];
+		if(s[j+1]==c[i])j++;
+		if(j==m)cout<<i-m+1<<endl;
+	}
+}
+\end{lstlisting}
+

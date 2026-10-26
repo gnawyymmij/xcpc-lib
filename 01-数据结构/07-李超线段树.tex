@@ -1,0 +1,99 @@
+\subsection{李超线段树}
+平面加线段，查询 $x=x_0$ 相交的最低/高点。
+\begin{lstlisting}
+//这份代码里，求的是相交的最低点，定义域为 [-1e9,1e9]，为了线段树是对的，整体向右偏移了 1e9。
+const double eps=1e-9;
+const int lim=1000000000;
+const ll inf=0x3f3f3f3f3f3f3f3f;
+int cmp(double x,double y){//比大小，这里求的是是否 x<y。如果要求最高点则这里反向就行。
+    if(x-y>eps)return -1;
+    if(y-x>eps)return 1;
+    return 0;
+}
+struct line{double k,b;};
+line li[400010];int cnt;
+double calc(ll id,double x){//算点值
+    if(id==0)return inf;
+    line l=li[id];
+    return l.k*x+l.b;
+}
+int nd;
+int t[30000010];
+int ls[30000010];
+int rs[30000010];
+void add(double x,double y,double xx,double yy){
+    if(x>xx)swap(x,xx),swap(y,yy);
+    cnt++;
+    if(cmp(x,xx)==0){
+        li[cnt].k=0,li[cnt].b=min(y,yy);//处理斜率不存在，直接退化成一个点。如果求相交最低点就是 min(y,yy)，否则是 max(y,yy)。
+    }else{
+        li[cnt].k=(yy-y)/(xx-x);
+        li[cnt].b=y-li[cnt].k*x;
+    }
+}
+//加入线段
+void upd(int l,int r,int &p,int id){
+    if(!p){p=++nd;t[p]=id;return;}
+    int &oid=t[p],mid=((ll)l+r)>>1;
+    int o=cmp(calc(id,mid-lim),calc(oid,mid-lim));
+    if(o==1)swap(id,oid);
+    if(cmp(calc(id,l-lim),calc(oid,l-lim))==1)upd(l,mid,ls[p],id);
+    if(cmp(calc(id,r-lim),calc(oid,r-lim))==1)upd(mid+1,r,rs[p],id);
+    // cout<<l<<" "<<r<<" "<<p<<" "<<t[p]<<endl;
+}
+//因为是线段所以需要找出所有相关区间，这里再找区间
+void ch(int l,int r,int &p,int L,int R,int id){
+    if(!p)p=++nd;
+    // cout<<l<<" "<<r<<" "<<p<<endl;
+    if(L<=l&&r<=R){
+        upd(l,r,p,id);
+        return;
+    }int mid=((ll)l+r)>>1;
+    if(mid>=L)ch(l,mid,ls[p],L,R,id);
+    if(mid<R)ch(mid+1,r,rs[p],L,R,id);
+}
+//求相交最低点
+double ask(int l,int r,int p,int x){
+    // cout<<l<<" "<<r<<" "<<p<<" "<<x<<endl;
+    if(!p)return inf;
+    double res=t[p]==0?inf:calc(t[p],x-lim);
+    // cout<<l<<" "<<r<<" "<<p<<" "<<x<<"   "<<t[p]<<" "<<res.x<<" "<<res.id<<endl;
+    if(l==r)return res;
+    int mid=((ll)l+r)>>1;
+    if(mid>=x)res=min(res,ask(l,mid,ls[p],x));
+    else res=min(res,ask(mid+1,r,rs[p],x));
+    return res;
+}
+int n,m,q;
+int rt;
+void solve(){// 模板题处理的是输入 l,r,a,b，表示线段 y=ax+b,x\in [l,r)，通过 add 添加线段，ch进行更新，ask进行查找。
+    n=d;q=d;
+    f(i,1,n){
+        ll l=d,r=d-1,a=d,b=d;
+        ll x=l,xx=r;
+        ll y=l*a+b,yy=r*a+b;
+        add(x,y,xx,yy);
+        // li[++cnt]={a,b};
+        ch(0,2*lim,rt,l+lim,r+lim,cnt);
+    }
+    f(_,1,q){
+        ll op=d;
+        if(op==0){
+            ll l=d,r=d-1,a=d,b=d;
+            ll x=l,xx=r;
+            ll y=l*a+b,yy=r*a+b;
+            add(x,y,xx,yy);
+            // li[++cnt]={a,b};
+            ch(0,2*lim,rt,l+lim,r+lim,cnt);
+        }if(op==1){
+            ll x=d;
+            double res=ask(0,2*lim,rt,x+lim);
+            if(res==inf)puts("INFINITY");
+            else printf("%lld\n",(ll)res);
+        }
+    }
+}
+\end{lstlisting}
+
+\newpage
+% =============================================
