@@ -1,20 +1,18 @@
 \subsection{Manacher}
-Manacher 算法，用于在线性时间内求解字符串的最长回文子串。
+返回最长回文子串长度，空串返回 0。分隔符使用整数 256，与任意字节均不同；每次调用全部状态为局部变量，支持直接多测。时间、空间均为 $O(n)$。
 \begin{lstlisting}
-  m=strlen(C+1);
-	c[++n]='#';
-	f(i,1,m)c[++n]=C[i],c[++n]='#';
-	md=1,r=1,res[1]=0;ans=1;
-	f(i,2,n){
-		if(i>r){
-			while(i+res[i]<n&&i-res[i]>1&&c[i+res[i]+1]==c[i-res[i]-1])res[i]++;
-			md=i,r=i+res[i];
-		}else{
-			res[i]=min(r-i,res[md*2-i]);
-			while(i+res[i]<n&&i-res[i]>1&&c[i+res[i]+1]==c[i-res[i]-1])res[i]++;
-			if(i+res[i]>r)r=i+res[i],md=i;
-		}ans=max(ans,res[i]);
-	}
-	cout<<ans;
+int manacher(const string& s){
+    vector<int> a(1,256);
+    for(unsigned char c:s){a.push_back(c);a.push_back(256);}
+    int n=a.size(),mid=0,right=-1,ans=0;
+    vector<int> radius(n);
+    for(int i=0;i<n;i++){
+        if(i<=right)radius[i]=min(right-i,radius[2*mid-i]);
+        while(i-radius[i]-1>=0&&i+radius[i]+1<n&&
+              a[i-radius[i]-1]==a[i+radius[i]+1])radius[i]++;
+        if(i+radius[i]>right)mid=i,right=i+radius[i];
+        ans=max(ans,radius[i]);
+    }
+    return ans;
+}
 \end{lstlisting}
-

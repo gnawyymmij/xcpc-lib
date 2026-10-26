@@ -1,52 +1,35 @@
 \subsubsection{ExLucas (Extended Lucas Theorem)}
-扩展 Lucas 定理，用于求解模任意数 $P$ 的大组合数。
+扩展 Lucas：将正模数分解为互质素数幂，去除阶乘中的 p 因子后做 CRT。处理残余大质因子，$P=1$ 和 $m>n$，修复原版未合并剩余因子的错误。此直接预处理实现限定 $1\le P\le2\times10^6$，单次预处理 $O(P+\sqrt P)$，查询递归约 $O(\log^2 n)$；大模数必须换用更适合题目约束的算法，不能假设 ExLucas 对任意大 P 都高效。所有状态局部化，可直接多测。
 \begin{lstlisting}
-ll n,m,P;
-ll pr[1000010],cnt;
-bool vis[1000010];
-void gt(){
-	f(i,2,1000000){
-		if(!vis[i])pr[++cnt]=i;
-		for(int j=1;j<=cnt&&i*pr[j]<=1000000;j++){
-			vis[i*pr[j]]=1;if(i%pr[j]==0)break;
-		}
-	}
-}
-ll eX,eY,eC;
-void exgcd(ll a,ll b){
-	if(b==0){eX=eC/a,eY=0;return;}
-	exgcd(b,a%b);ll x=eX,y=eY;
-	eX=y,eY=x-a/b*y;
-}ll inv(ll x,ll p){eC=1;exgcd(x,p);return (eX%p+p)%p;}
-ll F(ll n,ll p,ll pk){
-	if(n==0)return 1;
-	ll res=F(n/p,p,pk);
-	ll g=1;f(i,1,pk)if(i%p)g=g*i%pk;
-	g=qp(g,n/pk,pk);f(i,n/pk*pk,n)if(i%p)g=g*(i%pk)%pk;
-	return res*g%pk;
-}ll c(ll n,ll p){
-	ll res=0;while(n)res+=n/p,n/=p;
-	return res;
-}ll C(ll n,ll m,ll P){
-	if(n<m)return 0;
-	ll A=-1,B=-1,nn=P;
-	f(i,1,cnt)if(nn%pr[i]==0){
-		ll p=pr[i],pk=1;
-		while(nn%p==0)nn/=p,pk*=p;
-		ll AA=F(n,p,pk)*inv(F(m,p,pk),pk)%pk*inv(F(n-m,p,pk),pk)%pk;
-		AA=AA*(qp(p,c(n,p)-c(m,p)-c(n-m,p),pk))%pk;ll BB=pk;
-		if(A==-1)A=AA,B=BB;
-		else {
-			if(A<AA)swap(A,AA),swap(B,BB);eC=A-AA;
-			exgcd(B,BB);eX=((-eX)%BB+BB)%BB;
-			BB*=B;A=(eX*B+A)%BB;B=BB;
-		}
-	}return A;
-}
-int main(){
-	gt();n=d,m=d,P=d;
-	printf("%lld",C(n,m,P));
-	return 0;
+ll exlucas(ll n,ll m,ll mod){
+    assert(n>=0&&mod>=1&&mod<=2000000);
+    if(m<0||m>n||mod==1)return 0;
+    auto powmod=[](ll a,ll e,ll p){ll r=1%p;for(;e;e>>=1,a=a*a%p)if(e&1)r=r*a%p;return r;};
+    auto inverse=[](ll a,ll p){
+        ll b=p,x=1,y=0;
+        while(b){ll q=a/b;ll t=a-q*b;a=b;b=t;t=x-q*y;x=y;y=t;}
+        assert(a==1);return (x%p+p)%p;
+    };
+    vector<pair<ll,ll>> factors;ll rest=mod;
+    for(ll p=2;p<=rest/p;p++)if(rest%p==0){
+        ll pk=1;while(rest%p==0)rest/=p,pk*=p;factors.push_back({p,pk});
+    }
+    if(rest>1)factors.push_back({rest,rest});
+    ll answer=0,period=1;
+    for(auto [p,pk]:factors){
+        vector<ll> pref(pk+1,1);
+        for(ll i=1;i<=pk;i++)pref[i]=pref[i-1]*(i%p?i:1)%pk;
+        function<ll(ll)> fact=[&](ll x)->ll{
+            if(!x)return 1;
+            return fact(x/p)*powmod(pref[pk],x/pk,pk)%pk*pref[x%pk]%pk;
+        };
+        auto count=[&](ll x){ll r=0;while(x)x/=p,r+=x;return r;};
+        ll exponent=count(n)-count(m)-count(n-m);
+        ll residue=fact(n)*inverse(fact(m),pk)%pk*inverse(fact(n-m),pk)%pk;
+        residue=residue*powmod(p,exponent,pk)%pk;
+        ll step=((residue-answer)%pk+pk)%pk*inverse(period%pk,pk)%pk;
+        answer+=period*step;period*=pk;
+    }
+    return answer;
 }
 \end{lstlisting}
-

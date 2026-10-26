@@ -1,16 +1,14 @@
 \subsection{C++ 手动上下取整}
-众所周知 c++ 的负数取整逻辑是向 0 取整，强需要向下/上取整的时候很麻烦。
-
+利用 C++ 向零截断的商和余数修正，避免原版 $(x+y-1)$ 以及对 LLONG\_MIN 取负导致溢出。除零和 LLONG\_MIN/-1 的不可表示商抛异常，无可变状态，可直接多测。
 \begin{lstlisting}
-ll Ceil(ll x,ll y);
 ll Floor(ll x,ll y){
-    if(y<0)x=-x,y=-y;
-    if(x>=0)return x/y;
-    else return -Ceil(-x,y);
-}ll Ceil(ll x,ll y){
-    if(y<0)x=-x,y=-y;
-    if(x>=0)return (x+y-1)/y;
-    else return -Floor(-x,y);
+    if(!y||(x==LLONG_MIN&&y==-1))throw domain_error("invalid division");
+    ll q=x/y,r=x%y;
+    return q-(r!=0&&((r<0)!=(y<0)));
+}
+ll Ceil(ll x,ll y){
+    if(!y||(x==LLONG_MIN&&y==-1))throw domain_error("invalid division");
+    ll q=x/y,r=x%y;
+    return q+(r!=0&&((r<0)==(y<0)));
 }
 \end{lstlisting}
-

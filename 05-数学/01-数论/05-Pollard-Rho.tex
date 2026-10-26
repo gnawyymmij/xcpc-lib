@@ -17,7 +17,7 @@ bool miller(ll x){if(x<2)return 0;
 	ll u=x-1,t=0;while(u%2==0)u/=2,t++;
 	f(T,0,6){
 		ll a=tst[T];
-		if(x==a)return 1;
+		if(a%x==0)continue;
 		ll b=qp(a,u,x),bb;//if(b==1||b==x-1)continue;
 		f(i,1,t){
 			bb=(__int128)b*b%x;
@@ -25,9 +25,11 @@ bool miller(ll x){if(x<2)return 0;
 		}if(b!=1)return 0;
 	}return 1;
 }ll pollard(ll p){
-	ll c=(ll)rand()%p+1;
+	if(p%2==0)return 2;
+    static mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    ll c=uniform_int_distribution<ll>(1,p-1)(rng);
 	ll s=0,t=0,mul=1,k=1,i=0;
-	for(k=1;;k<<=1,s=t,mul=1){
+	for(k=1;k<=(1LL<<20);k<<=1,s=t,mul=1){
 		for(i=1;i<=k;i++){
 			t=((__int128)t*t+c)%p;
 			mul=(__int128)mul*abs(s-t)%p;
@@ -38,6 +40,7 @@ bool miller(ll x){if(x<2)return 0;
 		}ll g=__gcd(mul,p);
 		if(g>1)return g;
 	}
+    return p; // restart with a new random polynomial
 }ll mxp;
 void work(ll p){
 	if(p<2||p<=mxp)return;
@@ -55,3 +58,5 @@ int main(){srand(time(0));
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 本版本输入为正 signed long long，Miller--Rabin 的七基数覆盖该范围；底数先模 n，模 n 为 0 时须跳过，已修复会把 73 等质数误判的情况。每个输入将 mxp=0；随机数引擎跨组保留。work 只求最大质因子，不返回完整分解；$n=1$ 无质因子，应由题意单独处理。Pollard--Rho 为随机期望算法，无固定最坏时限；不要把此 ll 接口直接用于完整 unsigned 64 位范围。

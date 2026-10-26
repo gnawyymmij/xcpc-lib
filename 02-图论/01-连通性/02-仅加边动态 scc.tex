@@ -24,12 +24,13 @@ void dfs(int u){
 }
 void clear(){
     tim=0,tp=0;scc=0;
-    for(auto u:node)dfn[u]=low[u]=0,bel[u]=0,e[u].clear();
+    for(auto u:node)dfn[u]=low[u]=0,bel[u]=0,in[u]=false,e[u].clear();
     node.clear();
 }
 int U[100010],V[100010];
 vector<int>con[100010];
-int fa[100010];
+int fa[100010],dsz[100010];
+void init_dsu(int n){for(int i=1;i<=n;i++)fa[i]=i,dsz[i]=1;}
 int find(int x){
     if(fa[x]==x)return x;
     return fa[x]=find(fa[x]);
@@ -37,11 +38,12 @@ int find(int x){
 void un(int u,int v){
     if(find(u)==find(v))return;
     u=find(u),v=find(v);
-    fa[u]=v;
+    if(dsz[u]>dsz[v])swap(u,v);fa[u]=v;dsz[v]+=dsz[u];
 }
 void work(int l,int r,vector<array<int,3>>&E){// E 中储存 (u,v,i)，表示在加入全部 $[1,l-1]$ 的边后，u 和 v 所在的 scc 编号。这样接着在这个图上做可以简化。
     // printf("Working on [%d, %d]\n",l,r);
     // for(auto [u,v,i]:E)printf("(%d, %d, %d) ",u,v,i);cout<<endl;
+    if(l>r||E.empty())return;
     int mid=(l+r)>>1;
     vector<array<int,3>> e1,e2;e1.clear(),e2.clear();
     for(auto [u,v,i]:E){
@@ -61,5 +63,23 @@ void work(int l,int r,vector<array<int,3>>&E){// E 中储存 (u,v,i)，表示在
     }clear();
     work(l,mid,e1),work(mid+1,r,e2);
 }
+void init_dynamic_scc(int n){
+    clear();init_dsu(n);tim=tp=scc=0;
+    for(int u=0;u<=n;u++){
+        dfn[u]=low[u]=bel[u]=0;in[u]=false;e[u].clear();con[u].clear();
+    }
+}
+void solve_dynamic_scc(int n,const vector<pair<int,int>>& edges){
+    assert(n<100010&&edges.size()<100010);init_dynamic_scc(n);
+    vector<array<int,3>> E;
+    for(int i=0;i<int(edges.size());i++){
+        auto [u,v]=edges[i];U[i+1]=u;V[i+1]=v;E.push_back({u,v,i+1});
+    }
+    if(!E.empty())work(1,edges.size(),E);
+}
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 这是离线计算前缀强连通合并事件的片段，不支持在线删边。每组先初始化并查集，再清 node 并清零 tim、tp、scc、dfn、low、in、bel 及邻接表；给 U[i],V[i] 赋原始端点，再建立 E=(U[i],V[i],i)，调用 work(1,m,E)，$m=0$ 时跳过。con 若另有业务用途也须逐组清空。叶子中 un 的调用顺序按时间递增，可在该处记录事件；函数返回后仅保留最终并查集，不会自动输出各时刻答案。已用按大小合并避免并查集深链；Tarjan 递归深度仍按题目处理。总体按每层边数计 $O((n+m)\log m)$ 次图工作，空子问题已剪枝。
+
+\paragraph{使用条件与多测} 已补 init\_dynamic\_scc 与 solve\_dynamic\_scc 入口；仅求最终合并结果可直接调用后者。需要各时刻答案时，在 work 的叶子中记录事件，不能将算法返回后的最终 fa 当作历史状态。

@@ -14,7 +14,7 @@ void dfsz(ll u,ll fa){if(fl[u])return;
 	}
 }
 void dfsg(ll u,ll fa){if(fl[u])return;
-	ll mx=-1;
+	ll mx=0;
 	if(f[u]!=0)mx=siz-sz[u];
 	for(int i=hd[u];i;i=e[i].nx){
 		ll v=e[i].v,w=e[i].w;
@@ -23,8 +23,10 @@ void dfsg(ll u,ll fa){if(fl[u])return;
 	}if(mx<mn){mn=mx,g=u;}
 }
 void getg(ll rt){
-	mn=0x7f7f7f7f;siz=0;
+	mn=0x7f7f7f7f;siz=0;g=0;
 	dfsz(rt,0),dfsg(rt,0);
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 每组重建邻接表并清 fl[1..n]；同组点分治递归时 fl 是已删重心标记，不能每次 getg 都清空。rt 必须位于当前未删除的树分量；若 fl[rt] 为真返回 g=0。每次 getg 已重置 siz、mn、g，sz/f 在当前分量重新覆盖。深链注意递归栈，单次 $O(\text{分量大小})$。

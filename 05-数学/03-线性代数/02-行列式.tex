@@ -28,3 +28,5 @@ ll det(ll n,ll a[][1010]){
     return res;
 }
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 代码要求 mod 为质数且主元非零才可用 Fermat 逆元；合数模必须换无除法算法或辗转消元，不能照抄这份代码。每组完整赋矩阵，det 会原地修改它；空矩阵行列式为 1。ll 乘积若可能溢出应转 128 位。时间 $O(n^3+n\log mod)$。

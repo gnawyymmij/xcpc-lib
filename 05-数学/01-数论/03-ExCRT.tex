@@ -1,22 +1,21 @@
 \subsubsection{ExCRT (Extended Chinese Remainder Theorem)}
-扩展中国剩余定理，用于求解模数不互质的线性同余方程组。
+合并 $x\equiv A\pmod B$ 与 $x\equiv a\pmod b$。返回 false 表示无解且不修改 A、B；模数必须为正，合并后的最小公倍数超过 ll 时抛异常。内部 128 位计算，避免原版解系数乘积溢出。每组从 A=0、B=1 开始；无解后本组剩余约束仍需读完。
 \begin{lstlisting}
-ll x,y,c;
-void exgcd(ll a,ll b){
-	if(b==0){x=c/a,y=0;return;}
-	exgcd(b,a%b);ll xx=x,yy=y;
-	x=yy,y=xx-a/b*yy;
-}ll gcd(ll a,ll b){
-	return (b==0)?a:gcd(b,a%b);
+using i128=__int128_t;
+i128 egcd128(i128 a,i128 b,i128& x,i128& y){
+    if(!b){x=1;y=0;return a;}
+    i128 u,v,g=egcd128(b,a%b,u,v);x=v;y=u-a/b*v;return g;
 }
-ll A,B,a,b;
-// merge {x equiv A mod B} and {x equiv a mod b}
-void merge(ll &A,ll &B,ll a,ll b){
-    c=a-A;ll g=gcd(b,B);
-    if(c%g){return;/*no sol*/}
-    exgcd(B,b);
-    x%=b;b=b/g*B;
-    A=((A+x*B%b)%b+b)%b;B=b;
+bool merge(ll &A,ll &B,ll a,ll b){
+    assert(B>0&&b>0);
+    i128 aa=((i128)A%B+B)%B,bb=((i128)a%b+b)%b;
+    i128 x,y,g=egcd128(B,b,x,y),diff=bb-aa;
+    if(diff%g)return false;
+    i128 period=(i128)B/g*b;
+    if(period>LLONG_MAX)throw overflow_error("CRT modulus overflow");
+    i128 step=(diff/g*x)%(b/g);
+    i128 answer=(aa+(i128)B*step)%period;
+    if(answer<0)answer+=period;
+    A=(ll)answer;B=(ll)period;return true;
 }
 \end{lstlisting}
-

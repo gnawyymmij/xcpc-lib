@@ -8,7 +8,7 @@ ll get(ll l,ll r){
   return max(s[l][Lg],s[r-(1<<Lg)+1][Lg]);
 }
 int main(){
-	n=d,m=d;
+	n=d,m=d;lg[1]=0;assert(1<=n&&n<=100000);
 	f(i,1,n)s[i][0]=d;
 	f(j,1,19)f(i,1,n){
 		if(i+(1<<(j-1))>n)s[i][j]=s[i][j-1];
@@ -17,3 +17,5 @@ int main(){
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 建表完整覆盖本次有效区间，令 lg[1]=0 后重算到 n 即可多测复用，无须整表清零。要求 $1\le l\le r\le n\le100000$；预处理 $O(n\log n)$，查询 $O(1)$。重叠区间合并要求幂等性，不能直接替换为求和。

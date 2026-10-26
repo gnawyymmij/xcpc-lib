@@ -35,7 +35,8 @@ L_{ij} = \begin{cases}
 
 \begin{lstlisting}
 void solve(){
-    n=d,m=d;ll o=d;//0 无向；1 有向且 1 为根外向树
+    n=d,m=d;ll o=d;
+    f(i,1,n)f(j,1,n)a[i][j]=0;//0 无向；1 有向且 1 为根外向树
     if(o==0){
         f(i,1,m){
             ll u=d,v=d,w=d;
@@ -55,3 +56,5 @@ void solve(){
     }
 }
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 每组必须先清整个当前 $n\times n$ 矩阵，已在 solve 开头补上；自环对生成树无贡献，建矩阵时应忽略（代码的加减会抵消）。平行边权相加；加权度数是边权和而非边数。原矩阵压缩与 det 均破坏输入；多次删不同根时须从副本构造。权值要处于交换环中，仅“有交换律”不够；若调用前文 Fermat 消元，仍要求素数模，形式幂级数不能直接套除法实现。$n=1$ 答案为 1。

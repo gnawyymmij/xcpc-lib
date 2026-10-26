@@ -1,9 +1,15 @@
 \subsubsection{Exgcd (Extended Euclidean Algorithm)}
-扩展欧几里得算法，用于求解形如 $ax + by = c$ 的不定方程。
+返回 $g=\gcd(a,b)$ 和满足 $ax+by=g$ 的系数；先判断 $g\mid c$，再将系数乘以 $c/g$ 才得到方程 $ax+by=c$ 的解。避免原版直接 c/a 截断而默默给出伪解。参数为非负 ll 且不同时为 0；负数需先取绝对值并恢复系数符号，LLONG\_MIN 需先转 128 位。无全局状态，可直接多测。
 \begin{lstlisting}
-void exgcd(ll a,ll b){
-	if(b==0){x=c/a;y=0;return;}
-	exgcd(b,a%b);ll xx=x,yy=y;
-	x=yy,y=xx-a/b*yy;
+ll exgcd(ll a,ll b,ll &x,ll &y){
+    assert(a>=0&&b>=0&&(a||b));
+    if(!b){x=1;y=0;return a;}
+    ll u,v,g=exgcd(b,a%b,u,v);
+    x=v;y=ll((__int128)u-(__int128)(a/b)*v);return g;
+}
+bool diophantine(ll a,ll b,ll c,__int128_t &x,__int128_t &y){
+    if(!a&&!b){x=y=0;return c==0;}
+    ll u,v,g=exgcd(a,b,u,v);if(c%g)return false;
+    x=(__int128)u*(c/g);y=(__int128)v*(c/g);return true;
 }
 \end{lstlisting}

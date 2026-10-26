@@ -8,9 +8,12 @@ void ad(ll u,ll v,ll w){add(u,v,w),add(v,u,0);}
 
 ll de[100010],cur[100010];
 ll dis[100010];
-#define inf 0x3f3f3f3f
+const ll inf=LLONG_MAX/4;
 queue<ll>q;
 ll nodes,S,T;
+void init_dinic(int count,int source,int sink){
+    nodes=count;S=source;T=sink;cnt=1;fill(hd,hd+nodes+1,0);
+}
 bool bfs(){
     while(!q.empty())q.pop();
     f(i,1,nodes)cur[i]=hd[i],de[i]=inf;de[S]=0;q.push(S);
@@ -28,23 +31,24 @@ bool bfs(){
 ll dfs(ll u,ll fl){
     if(u==T)return fl;
     ll res=0,k=0;
-    for(int i=cur[u];i&&fl;i=e[i].nx){
-        cur[u]=i;if(e[i].w==0)continue;
+    for(ll &i=cur[u];i&&fl;i=e[i].nx){if(e[i].w==0)continue;
         ll v=e[i].v;if(de[v]==de[u]+1){
             k=dfs(v,min(fl,e[i].w));
             e[i].w-=k,e[i^1].w+=k;
             fl-=k,res+=k;
+            if(!fl)break; // preserve a partially usable current arc
         }
     }return res;
 }
 ll n,m;
 ll dinic(){
     ll res=0;
-    while(bfs())res+=dfs(S,inf);
+    if(S==T)return 0;
+    while(bfs()){ll pushed;while((pushed=dfs(S,inf)))res+=pushed;}
     return res;
 }
 int main(){
-    n=d,m=d,S=d,T=d;nodes=n;
+    n=d,m=d,S=d,T=d;init_dinic(n,S,T);
     f(i,1,m){
         ll u=d,v=d,w=d;
         ad(u,v,w);
@@ -53,3 +57,5 @@ int main(){
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 每组读边前清 hd[0..nodes]、cnt=1；容量残量由 ad 重新赋值。重复 dinic() 返回新增流量而非历史总流量。容量非负，源汇应不同，流量和必须可用 ll 表示；nodes 包括超级源汇，边池容量按两倍有向边数算。DFS 可能深至点数；通用图复杂度 $O(V^2E)$，不能将单位容量图的更强界套到任意网络。

@@ -1,16 +1,17 @@
 \subsection{哈希表}
-本地实现线性探测，yosupo \~175ms（umap+同一个shift函数 334ms）
+线性探测哈希表，使用进程级随机种子的 splitmix64；平均常数复杂度，性能取决于容量和负载。原稿的特定机器测速不能视为通用结论。
 \begin{lstlisting}
-using u64=unsigned ll;
+using u64=unsigned long long;
 u64 xorshift(u64 x) {
-	x += 0x9e3779b97f4a7c15;
-    // x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+	static const u64 seed=chrono::steady_clock::now().time_since_epoch().count();
+    x += seed+0x9e3779b97f4a7c15;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
     x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
     return x ^ (x >> 31);
 }
 template<typename K, typename V, int M=(1<<20)>
 struct HashTable{
-	static_assert((M&(M-1))== 0);
+	static_assert(M>0 && (M&(M-1))==0);
     static const int MASK=M-1;
 	int cnt=0;vector<int>e;
 	bitset<M> used;
@@ -22,16 +23,18 @@ struct HashTable{
 	int size(){return cnt;}
 	int idx(K x){
 		int u=xorshift(x)&MASK;
-		for(;used[u]&&k[u]!=x;(++u)&=MASK);
-		return u;
+		for(int step=0;step<M;step++,u=(u+1)&MASK)
+            if(!used[u]||k[u]==x)return u;
+        return -1; // full table: never probe forever
 	}
 	V* find(K x){
 		int i=idx(x);
-		if(!used[i])return nullptr;
+		if(i<0||!used[i])return nullptr;
 		return &v[i];
 	}
 	V& operator [](K x){
 		int i=idx(x);
+        if(i<0)throw overflow_error("HashTable capacity exhausted");
 		if(!used[i]){
 			used[i]=1;cnt++;
 			e.pb(i);
@@ -40,5 +43,7 @@ struct HashTable{
 	}
 };
 \end{lstlisting}
-然后当 std::map 用即可。注：此处默认 K, V 都是整数，如果有其他类型需要额外先写一个该类型的 hash。
+使用 operator[] 插入或访问，find 返回值指针。此处默认 K、V 为整数；其他键类型需要替换哈希函数，且不提供有序 map 操作。
 
+
+\paragraph{使用条件与多测} 每组开始调用 \texttt{clear()}；新对象的 bitset 自带零初始化。线性探测仅支持插入、查找和整体清空，不支持直接删槽；建议负载率低于 $0.7$，高负载会退化，最坏单次 $O(M)$。该结构无序，不能代替 map 的有序操作。大对象应放在静态区或堆上。

@@ -1,29 +1,19 @@
 \subsubsection{Bostan-Mori}
-
-求 $[z^m]\frac{P(z)}{Q(z)}$，原理是 $\frac{P(z)}{Q(z)}=\frac{P(z)Q(-z)}{Q(z)Q(-z)}$，随后分母只有偶次项，分子可以奇偶分开，根据 $m$ 的奇偶性只需要取一边即可变成 $[z^{m/2}]\frac{P_1(z)}{Q_1(z)}$ 的一个子问题。
-
+求 $[x^m]P(x)/Q(x)$；依赖前文 poly 命名空间，要求 $Q(0)\ne0$ 且系数已归一化。按值传参保留原输入，局部状态支持直接多测，返回结果会乘 $Q(0)^{-1}$。零分子返回 0，避免筛奇数项后空分子越界。
 \begin{lstlisting}
-while(m){
-	vector<ll>nQ;
-	nQ.clear();
-	int q=Q.size();
-	f(i,0,q-1){
-		if(i&1)nQ.pb((mod-Q[i])%mod);
-		else nQ.pb(Q[i]);
-	}
-	// for(auto w:Q)cout<<w<<" ";cout<<endl;
-	// for(auto w:nQ)cout<<w<<" ";cout<<endl;
-	vector<ll> dP=Mul(P,nQ);
-	vector<ll> dQ=Mul(Q,nQ);
-	P.clear(),Q.clear();
-	int dq=dQ.size();
-	f(i,0,dq-1)
-		if(i%2==0)Q.pb(dQ[i]);
-	int dp=dP.size();
-	f(i,0,dp-1)
-		if(i%2==m%2)P.pb(dP[i]);
-	m>>=1;
+ll bostan_mori(poly::Poly P,poly::Poly Q,unsigned long long m){
+    using namespace poly;
+    trim(P);trim(Q);assert(!Q.empty()&&Q[0]);
+    if(P.empty())return 0;
+    while(m){
+        Poly neg=Q;for(int i=1;i<int(neg.size());i+=2)neg[i]=(mod-neg[i])%mod;
+        Poly a=Mul(P,neg),b=Mul(Q,neg);P.clear();Q.clear();
+        for(int i=int(m&1);i<int(a.size());i+=2)P.push_back(a[i]);
+        for(int i=0;i<int(b.size());i+=2)Q.push_back(b[i]);
+        trim(P);trim(Q);if(P.empty())return 0;m>>=1;
+    }
+    return P[0]*qp(Q[0])%poly::mod;
 }
-printf("%lld\n",P[0]*qp(Q[0])%mod);
 \end{lstlisting}
 
+\paragraph{使用条件与多测} 次数为 d 时通常为 $O(d\log d\log(m+1))$；输入分子次数很大时复杂度也依赖其长度。常数分母与 m=0 同样可用。

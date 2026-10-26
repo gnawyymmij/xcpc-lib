@@ -1,5 +1,5 @@
 \subsection{LCT (Link-Cut Tree)}
-反正我不会，看着乐呵乐呵好了。。
+动态森林，维护路径异或；操作均摊 $O(\log n)$。
 
 这里求得是链 xor
 \begin{lstlisting}
@@ -54,7 +54,11 @@ void pd(ll p){
 	if(!isr(y))ch[z][y==rs(z)]=x;
 	ch[y][t]=ch[x][t^1];if(ch[x][t^1])fa[ch[x][t^1]]=y;
 	ch[x][t^1]=y;fa[y]=x,fa[x]=z;upd(y);upd(x);
-}void pda(ll x){if(!isr(x))pda(fa[x]);pd(x);}
+}void pda(ll x){
+    static vector<int> st;st.clear();
+    for(int y=x;;y=fa[y]){st.push_back(y);if(isr(y))break;}
+    while(!st.empty()){pd(st.back());st.pop_back();}
+}
 void splay(ll x){//cout<<x<<endl;
 	pda(x);//cout<<x<<endl;
 	while(!isr(x)){
@@ -73,7 +77,7 @@ void splay(ll x){//cout<<x<<endl;
 	splay(x);upt(x);
 }ll find(ll x){
 	access(x),splay(x);
-	while(ls(x))pd(x),x=ls(x);
+	for(pd(x);ls(x);pd(x))x=ls(x);
 	splay(x);return x;
 }void split(ll x,ll y){
 	mkr(x);access(y);splay(y);
@@ -83,17 +87,22 @@ void splay(ll x){//cout<<x<<endl;
 	if(find(y)==x)return 0;
 	fa[x]=y;splay(y);return 1;
 }ll cut(ll x,ll y){
-	mkr(x);if(find(y)==x&&fa[y]==x&&!ls(y))
-	{fa[y]=rs(x)=0,upd(x);return 1;}return 0;
+	split(x,y);
+    if(ls(y)!=x||rs(x))return 0;
+    ls(y)=fa[x]=0;upd(y);return 1;
 }
 int main(){
-	n=d,m=d;f(i,1,n)val[i]=d;
+	n=d,m=d;
+    f(i,0,n){fa[i]=ch[i][0]=ch[i][1]=tg[i]=val[i]=sum[i]=0;}
+    f(i,1,n)sum[i]=val[i]=d;
 	while(m--){
 		ll o=d,x=d,y=d;
 		if(o==0)split(x,y),printf("%d\n",sum[y]);
 		if(o==1)link(x,y);if(o==2)cut(x,y);
-		if(o==3)splay(x),val[x]=y;
+		if(o==3)access(x),splay(x),val[x]=y,upd(x);
 	}
 	return 0;
 }
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 每组先执行 main 中的节点初始化，再赋点权；零号节点始终为全零哨兵。main 的单组逻辑可提取为 solve 后放入多测循环。路径查询前须确认 find(x)==find(y)；link 拒绝成环，cut 只删除真实存在的边。点权使用 int；本模板是异或而非求和。

@@ -1,36 +1,13 @@
 \subsubsection{圆方树 (Round-Square Tree)}
-圆方树 (Block-Cut Tree)，用于处理一般图上的点双连通分量。
+依赖前文 Biconnected：先 run()，再调用下列函数。圆点编号 $1..n$，第 $k$ 个点双对应方点 $n+k+1$。孤立点保留为单个圆点，不额外生成一元方点；非连通图得到圆方森林。多测返回全新的邻接表，时间空间 $O(n+m)$。
 \begin{lstlisting}
-ll n,m,tim;
-ll dfn[100010],low[100010];
-ll st[100010],tp,c;
-bool in[100010];
-vi e[100010];
-vi E[200010];
-void dfs(ll u,ll fa){
-	dfn[u]=low[u]=++tim;
-	st[++tp]=u;in[u]=1;
-	fe(i,e[u]){
-		ll v=e[u][i];if(v==fa)continue;
-		if(!dfn[v]){
-			dfs(v,u);low[u]=min(low[u],low[v]);
-			if(low[v]>=dfn[u]){
-				c++;E[c].pb(u),E[u].pb(c);
-				ll now;while(1){
-					now=st[tp--];in[now]=0;
-					E[now].pb(c),E[c].pb(now);
-					if(now==v)break;
-				}
-			}
-		}else if(in[v])low[u]=min(low[u],dfn[v]);
-	}
-}
-
-int main(){
-	n=c=d,m=d;
-	f(i,1,m){ll u=d,v=d;e[u].pb(v),e[v].pb(u);}
-	f(i,1,n)if(!dfn[i])dfs(i,0);
-	return 0;
+vector<vector<int>> block_cut_forest(const Biconnected& b){
+    vector<vector<int>> tree(b.n+b.blocks.size()+1);
+    for(int k=0;k<int(b.blocks.size());k++){
+        if(b.blocks[k].size()==1)continue;
+        int square=b.n+k+1;
+        for(int u:b.blocks[k]){tree[u].push_back(square);tree[square].push_back(u);}
+    }
+    return tree; // skipped singleton squares are unused IDs
 }
 \end{lstlisting}
-

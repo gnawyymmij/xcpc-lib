@@ -10,6 +10,7 @@ bool vis[2000010];
 ll mu[2000010];
 ll ph[2000010];
 void gt(){
+    static bool ready=false;if(ready)return;ready=true;cnt=0;
 	mu[1]=ph[1]=1;
 	f(i,2,2000000){
 		if(!vis[i])pr[++cnt]=i,mu[i]=-1,ph[i]=i-1;
@@ -24,14 +25,14 @@ unordered_map<ll,ll>smu;
 unordered_map<ll,ll>sph;
 ll Mu(ll n){
 	if(n<=2000000)return mu[n];
-	if(smu[n])return smu[n];
+	if(auto it=smu.find(n);it!=smu.end())return it->second;
 	ll res=1;for(ll l=2,r;l<=n;l=r+1){
 		r=n/(n/l);res-=(r-l+1)*Mu(n/l);
 	}return smu[n]=res;
 }ll Ph(ll n){
 	if(n<=2000000)return ph[n];
-	if(sph[n])return sph[n];
-	ll res=n*(n+1)/2;for(ll l=2,r;l<=n;l=r+1){
+	if(auto it=sph.find(n);it!=sph.end())return it->second;
+	ll res=(ll)((__int128)n*(n+1)/2);for(ll l=2,r;l<=n;l=r+1){
 		r=n/(n/l);res-=(r-l+1)*Ph(n/l);
 	}return sph[n]=res;
 }
@@ -42,3 +43,5 @@ int main(){
 	return 0;
 }
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 固定函数和固定筛上限时 gt 只调用一次，前缀表和两个 memo 均可跨组复用；如受内存限制可在组间清 smu、sph（影响速度但不影响结果）。零值缓存必须用 find 判存在，已修复反复计算和查询插入空缓存的问题。输入非负，$\sum\phi$ 及中间项须在 ll 范围内；超范围时缓存与运算整体改用 128 位。

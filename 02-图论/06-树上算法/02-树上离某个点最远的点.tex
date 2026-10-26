@@ -1,36 +1,21 @@
 \subsubsection{树上离某个点最远的点}
-mx: 往子树去的最远（不包括自身）
-
-far：往父亲去的最远（包括自身）
+无权树，down/up 都以边数表示距离，包含自身的距离 0。先 dfs\_down(root,0) 再令 up[root]=0 并 dfs\_up(root,0)；答案为 max(down[u],up[u])，根的其他子树也会被正确考虑。每组重建邻接表，两个遍历覆盖有效数组。$O(n)$；深链需改为迭代遍历。
 \begin{lstlisting}
-ll mx[200010],imx[200010],id[200010];
-ll dep[200010];
-ll far[200010];
-void getd(ll u,ll fa){
-    dep[u]=dep[fa]+1;mx[u]=imx[u]=0;id[u]=0;
-    for(int i=0;i<e[u].size();i++){
-        ll v=e[u][i];if(v==fa)continue;
-        getd(v,u);if(mx[v]+1>mx[u]){
-            imx[u]=mx[u];mx[u]=mx[v]+1;id[u]=v;
-        }else if(mx[v]+1>=imx[u]){
-            imx[u]=max(imx[u],mx[v]+1);
-        }
+ll down[200010],second_down[200010],up[200010];
+int best_child[200010];
+vector<int> e[200010];
+void dfs_down(int u,int parent){
+    down[u]=second_down[u]=0;best_child[u]=0;
+    for(int v:e[u])if(v!=parent){
+        dfs_down(v,u);ll x=down[v]+1;
+        if(x>down[u])second_down[u]=down[u],down[u]=x,best_child[u]=v;
+        else second_down[u]=max(second_down[u],x);
     }
 }
-void getf(ll u,ll fa,ll mxl){
-    if(u==rt){far[u]=1;
-        for(int i=0;i<e[u].size();i++){
-            ll v=e[u][i];if(v==fa)continue;
-            getf(v,u,1);
-        }
-    }else{
-        far[u]=mxl+1;
-        for(int i=0;i<e[u].size();i++){
-            ll v=e[u][i];if(v==fa)continue;
-            if(v==id[u])getf(v,u,max(mxl+1,imx[u]+1));
-            else getf(v,u,max(mxl+1,mx[u]+1));
-        }
+void dfs_up(int u,int parent){
+    for(int v:e[u])if(v!=parent){
+        ll sibling=(best_child[u]==v?second_down[u]:down[u]);
+        up[v]=max(up[u],sibling)+1;dfs_up(v,u);
     }
 }
 \end{lstlisting}
-

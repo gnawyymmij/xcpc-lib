@@ -1,44 +1,31 @@
 \subsubsection{斯坦纳树 (Steiner Tree)}
-斯坦纳树 (Steiner Tree)，用于在图中连接指定的一组“关键点”，使得总边权最小。
+无向非负权图上的子集 DP。顶点从 1 编号，终端可重复（会去重）；空终端集返回 0，不可连通返回 INF。局部状态支持多测。多源 Dijkstra 直接在原邻接表运行，省去 Floyd；时间 $O(3^k n+2^k(m+n)\log n)$，空间 $O(2^k n)$，仅适用于终端数很小的情况。
 \begin{lstlisting}
-ll n,m,s;
-ll dis[110][110];
-ll id[110],a[110];
-ll dp[110][1500];
-bool fl[110];
-struct node{ll x,id;};
-bool operator <(node a,node b){return a.x>b.x;}
-priority_queue<node>q;
-ll res=0x3f3f3f3f3f3f3f3f;
-int main(){
-	n=d,m=d,s=d;
-	memset(dis,0x3f,sizeof(dis));
-	f(i,1,m){
-		ll u=d,v=d,w=d;
-		dis[u][v]=dis[v][u]=min(dis[u][v],w);
-	}f(i,1,s)id[a[i]=d]=i;
-	f(k,1,n)f(i,1,n)f(j,1,n)dis[i][j]=min(dis[i][j],dis[i][k]+dis[k][j]);
-	memset(dp,0x3f,sizeof(dp));
-	f(i,1,n)dp[i][0]=0;
-	f(i,1,s)dp[a[i]][1<<(i-1)]=0;
-	f(S,1,(1<<s)-1){
-		f(i,1,n)for(int t=S;t;t=(t-1)&S)dp[i][S]=min(dp[i][S],dp[i][t]+dp[i][S^t]);
-		f(i,0,n)fl[i]=0;
-		dp[0][S]=0;q.push({0,0});
-		while(!q.empty()){
-			ll u=q.top().id;q.pop();
-			if(fl[u])continue;fl[u]=1;
-			if(u==0)f(i,1,n)q.push({dp[i][S],i});
-			else{
-				f(i,1,n)if(dp[u][S]+dis[u][i]<dp[i][S]){
-					dp[i][S]=dp[u][S]+dis[u][i];
-					q.push({dp[i][S],i});
-				}
-			}
-		}
-	}f(i,1,n)res=min(res,dp[i][(1<<s)-1]);
-	cout<<res;
-	return 0;
+ll steiner_tree(const vector<vector<pair<int,ll>>>& g,vector<int> terminal){
+    const ll INF=LLONG_MAX/4;
+    int n=int(g.size())-1;
+    sort(terminal.begin(),terminal.end());
+    terminal.erase(unique(terminal.begin(),terminal.end()),terminal.end());
+    int k=terminal.size();if(!k)return 0;
+    assert(k<20); // memory, not just shift width, is the real constraint
+    int all=1<<k;vector<vector<ll>> dp(all,vector<ll>(n+1,INF));
+    for(int i=0;i<k;i++)dp[1<<i][terminal[i]]=0;
+    for(int mask=1;mask<all;mask++){
+        for(int sub=(mask-1)&mask;sub;sub=(sub-1)&mask){
+            int other=mask^sub;if(sub>other)continue;
+            for(int u=1;u<=n;u++)dp[mask][u]=min(dp[mask][u],dp[sub][u]+dp[other][u]);
+        }
+        priority_queue<pair<ll,int>,vector<pair<ll,int>>,greater<pair<ll,int>>> q;
+        for(int u=1;u<=n;u++)if(dp[mask][u]<INF)q.push({dp[mask][u],u});
+        while(!q.empty()){
+            auto [distance,u]=q.top();q.pop();if(distance!=dp[mask][u])continue;
+            for(auto [v,w]:g[u]){
+                assert(w>=0&&w<INF);
+                if(distance<=INF-w&&distance+w<dp[mask][v])
+                    dp[mask][v]=distance+w,q.push({distance+w,v});
+            }
+        }
+    }
+    return *min_element(dp.back().begin()+1,dp.back().end());
 }
 \end{lstlisting}
-

@@ -3,8 +3,12 @@
 \begin{lstlisting}
 ll dfn[100010],de[100010],fa[100010],son[100010];
 ll sz[100010],top[100010],rk[100010];
+void init_hld(int nodes){
+    n=nodes;tim=cnt=0;sz[0]=de[0]=0;
+    fill(hd,hd+n+1,0);
+}
 void dfs1(ll u,ll fat){
-    fa[u]=fat;de[u]=de[fat]+1;sz[u]=1;
+    fa[u]=fat;de[u]=de[fat]+1;sz[u]=1;son[u]=0;
     for(int i=hd[u];i;i=e[i].nx){
         ll v=e[i].v;if(v==fat)continue;
         dfs1(v,u);
@@ -26,7 +30,8 @@ ll t[100010<<2];
 ll tg[100010<<2];
 void upd(ll p){t[p]=(t[ls(p)]+t[rs(p)])%mod;}
 void build(ll l,ll r,ll p){
-    if(l==r){t[p]=a[rk[l]];return;}
+    tg[p]=0;
+    if(l==r){t[p]=(a[rk[l]]%mod+mod)%mod;return;}
     ll mid=l+r>>1;
     build(l,mid,ls(p));
     build(mid+1,r,rs(p));
@@ -56,6 +61,7 @@ void add(ll l,ll r,ll p,ll L,ll R,ll k){
     return res%mod;
 }
 void chad(ll u,ll v,ll k){
+    k=(k%mod+mod)%mod;
     while(top[u]!=top[v]){
         if(de[top[u]]<de[top[v]])swap(u,v);
         add(1,n,1,dfn[top[u]],dfn[u],k);
@@ -65,7 +71,7 @@ void chad(ll u,ll v,ll k){
 }ll chs(ll u,ll v){ll res=0;
     while(top[u]!=top[v]){
         if(de[top[u]]<de[top[v]])swap(u,v);
-        res+=get(1,n,1,dfn[top[u]],dfn[u]);
+        res=(res+get(1,n,1,dfn[top[u]],dfn[u]))%mod;
         u=fa[top[u]];
     }if(dfn[u]>dfn[v])swap(u,v);
     res+=get(1,n,1,dfn[u],dfn[v]);
@@ -73,3 +79,5 @@ void chad(ll u,ll v,ll k){
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 每组读边前调用 init\_hld(n)，其中 cnt 为前向星边计数；读完后依次 dfs1(root,0)、dfs2(root,root)、build(1,n,1)。build 已逐节点清零懒标记，dfs1 已清 son。仅用于一棵树，路径操作要求两点连通；递归在链上可能栈溢出，深链须改为显式栈。mod 必须为正，乘法及两个余数相加须在 ll 范围内，否则改用 \texttt{\_\_int128}。

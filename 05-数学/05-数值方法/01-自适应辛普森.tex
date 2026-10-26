@@ -1,15 +1,24 @@
 \subsubsection{自适应辛普森 (Adaptive Simpson's Rule)}
-自适应辛普森积分，用于数值计算函数在区间上的定积分。
+自适应 Simpson，传入函数与容差；复用端点／中点值以减少函数求值。每次调用使用局部状态，多测须重新捕获本组函数参数。区间内须连续且足够光滑，不可含极点或未经处理的广义积分；给出绝对误差估计，不是对任意函数的严格误差保证。
 \begin{lstlisting}
-double f(double x){return (m*x+n)/(a*x+b);}//在x处的函数值
-double simp(double L,double R){return ((R-L)*(f(L)+f(R)+4*f((L+R)/2)))/6;}
-double asr(double L,double R,double eps,double ans){
-	double mid=(L+R)/2;
-	double x=simp(L,mid),y=simp(mid,R);
-	if(fabs(x+y-ans)<=15*eps)return x+y+(x+y-ans)/15;
-	return asr(L,mid,eps/2,x)+asr(mid,R,eps/2,y);
+template<class F>
+double integrate(F func,double left,double right,double eps=1e-8,int max_depth=30){
+    assert(eps>0&&max_depth>0);
+    if(left==right)return 0;
+    if(left>right)return -integrate(func,right,left,eps,max_depth);
+    auto eval=[&](double x){double y=func(x);if(!isfinite(y))throw domain_error("non-finite integrand");return y;};
+    auto simpson=[](double l,double r,double fl,double fm,double fr){return (r-l)*(fl+4*fm+fr)/6;};
+    function<double(double,double,double,double,double,double,double,int)> rec;
+    rec=[&](double l,double r,double fl,double fm,double fr,double old,double tol,int depth)->double{
+        double m=l+(r-l)/2;
+        if(m==l||m==r)return old;
+        double lm=eval(l+(m-l)/2),rm=eval(m+(r-m)/2);
+        double a=simpson(l,m,fl,lm,fm),b=simpson(m,r,fm,rm,fr),delta=a+b-old;
+        if(fabs(delta)<=15*tol)return a+b+delta/15;
+        if(!depth)throw runtime_error("Simpson did not converge");
+        return rec(l,m,fl,lm,fm,a,tol/2,depth-1)+rec(m,r,fm,rm,fr,b,tol/2,depth-1);
+    };
+    double m=left+(right-left)/2,fl=eval(left),fm=eval(m),fr=eval(right);
+    return rec(left,right,fl,fm,fr,simpson(left,right,fl,fm,fr),eps,max_depth);
 }
-
-printf("%.6lf",asr(l,r,1e-6,simp(l,r)));
 \end{lstlisting}
-

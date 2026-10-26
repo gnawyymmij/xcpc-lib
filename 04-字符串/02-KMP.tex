@@ -4,16 +4,19 @@ Knuth-Morris-Pratt 算法，用于在线性时间内进行字符串匹配（在 
 char c[1000010],s[1000010];
 ll nx[1000010];
 int main(){
-	cin>>c+1>>s+1;
+	cin>>setw(1000001)>>(c+1)>>setw(1000001)>>(s+1);
 	n=strlen(c+1),m=strlen(s+1);
-	ll j=0;f(i,2,m){
+	nx[0]=nx[1]=0;
+    ll j=0;f(i,2,m){
 		while(j&&s[j+1]!=s[i])j=nx[j];
 		if(s[j+1]==s[i])j++;nx[i]=j;
 	}j=0;f(i,1,n){
 		while(j&&s[j+1]!=c[i])j=nx[j];
 		if(s[j+1]==c[i])j++;
-		if(j==m)cout<<i-m+1<<endl;
+		if(j==m){cout<<i-m+1<<'\n';j=nx[j];}
 	}
 }
 \end{lstlisting}
 
+
+\paragraph{使用条件与多测} 每组 nx[1]=0、j=0，当前有效 nx 区间会覆盖；主串和模式串需重新读入。模式串必须非空，空模式须另行定义。已限制 char 数组输入宽度，仍要求单串不超过 1000000 字符；C++20 下建议改用 string（原 char 指针输入惯用法用 C++17 编译）。

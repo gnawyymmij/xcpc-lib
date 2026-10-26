@@ -1,13 +1,15 @@
 \subsection{fhq-treap}
 1. 值域分裂
 \begin{lstlisting}
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 struct node{
     ll ls,rs;
-    ll val,rnd;
+    ll val; unsigned long long rnd;
     ll sz,num;
 }t[1000010];ll cur=0;
 ll newnode(ll val){
-    t[++cur]={0,0,val,rand(),1,1};
+    assert(cur+1<(ll)size(t));
+    t[++cur]={0,0,val,rng(),1,1};
     return cur;
 }void upd(ll p){
     t[p].sz=t[t[p].ls].sz+t[t[p].rs].sz+t[p].num;
@@ -27,24 +29,33 @@ ll newnode(ll val){
     }
 }
 ll rt;
+void init(){cur=rt=0;t[0]={};}
+void split_lt(ll p,ll k,ll &x,ll &y){
+    if(!p){x=y=0;return;}
+    if(t[p].val<k)x=p,split_lt(t[p].rs,k,t[x].rs,y);
+    else y=p,split_lt(t[p].ls,k,x,t[y].ls);
+    upd(p);
+}
 void insert(ll val){
     ll x,y,z;
-    split(rt,val-1,x,y);split(y,val,y,z);
+    split_lt(rt,val,x,y);split(y,val,y,z);
     if(y==0)y=newnode(val);else t[y].num++,t[y].sz++;
     rt=merge(merge(x,y),z);
 }void del(ll val){
     ll x,y,z;
-    split(rt,val-1,x,y);split(y,val,y,z);
-    if(y==0)return;t[y].num--,t[y].sz--;
+    split_lt(rt,val,x,y);split(y,val,y,z);
+    if(y==0){rt=merge(x,z);return;}
+    t[y].num--,t[y].sz--;
     if(t[y].num==0)rt=merge(x,z);
     else rt=merge(merge(x,y),z);
 }
 ll rk(ll val){// 1 + (# of < val)
-    ll x,y;split(rt,val-1,x,y);
+    ll x,y;split_lt(rt,val,x,y);
     ll res=t[x].sz+1;rt=merge(x,y);
     return res;
 }
 ll findkth(ll p,ll k){
+    if(k<1||k>t[p].sz)throw out_of_range("kth");
     while(1){
         if(t[t[p].ls].sz>=k)p=t[p].ls;
         else if(t[t[p].ls].sz+t[p].num>=k)return t[p].val;
@@ -52,12 +63,14 @@ ll findkth(ll p,ll k){
     }
 }
 ll pred(ll val){ // max_{x<val} x
-    ll x,y;split(rt,val-1,x,y);
+    ll x,y;split_lt(rt,val,x,y);
+    if(!x){rt=merge(x,y);throw out_of_range("no predecessor");}
     ll res=findkth(x,t[x].sz);
     rt=merge(x,y);
     return res;
 }ll succ(ll val){ // min_{x>val} x
     ll x,y;split(rt,val,x,y);
+    if(!y){rt=merge(x,y);throw out_of_range("no successor");}
     ll res=findkth(y,1);
     rt=merge(x,y);
     return res;
@@ -66,24 +79,26 @@ ll pred(ll val){ // max_{x<val} x
 2. 排名分裂
 \begin{lstlisting}
 ll n,m,cnt;
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 struct node{
     int ls,rs;
-    ll val,rnd;
+    ll val; unsigned long long rnd;
     int sz,num;
     int tg;// 打了 tag，可以不用。这里是区间 reverse 板子。
 }t[100010];
 #define ls(p) (t[(p)].ls)
 #define rs(p) (t[(p)].rs)
 int newnode(ll x){
-    t[++cnt]={0,0,x,rand(),1,1,0};
+    assert(cnt+1<(ll)size(t));
+    t[++cnt]={0,0,x,rng(),1,1,0};
     return cnt;
 }
 void upd(int p){t[p].sz=t[ls(p)].sz+t[rs(p)].sz+t[p].num;}
 void pd(int p){
     if(t[p].tg==0)return;
     swap(ls(p),rs(p));
-    t[ls(p)].tg^=1;
-    t[rs(p)].tg^=1;
+    if(ls(p))t[ls(p)].tg^=1;
+    if(rs(p))t[rs(p)].tg^=1;
     t[p].tg=0;
 }
 void split(int p,int sz,int &x,int &y){
@@ -101,4 +116,7 @@ void out(int p){
     out(ls(p)),cout<<t[p].val<<" ",out(rs(p));
 }
 ll rt;
+void init(){cnt=rt=0;t[0]={};}
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 两个代码块为独立备选实现；每组开始调用各自的 \texttt{init()}，复用节点时由 newnode 整体赋值，不必清空整个池。节点池容量按单组累计新建数计算，删除不会回收编号。排名分裂要求每个节点 num 为 1、分裂数量合法；查询排名越界或不存在前驱／后继会抛异常，调用方应事先判断。期望 $O(\log n)$，随机退化及递归深度仍需留意。

@@ -1,35 +1,28 @@
 \subsection{欧拉路径 (Eulerian Path)}
-\paragraph{有向图}
+有向图 Hierholzer，顶点从 1 编号；返回空 vector 表示无解。检查度数与实际使用边数，可处理非连通图、重边、自环；无边且 $n>0$ 返回顶点 1。显式栈避免 $O(m)$ 深递归。局部变量支持多测；排序后输出字典序最小路径，时间 $O(n+m\log m)$，不要求字典序时可去掉排序，降为 $O(n+m)$。
 \begin{lstlisting}
-vi e[100010];
-ll cur[100010];
-ll in[100010],out[100010];
-ll ans[1000010],c;
-void dfs(ll u){
-	for(int i=cur[u];i<e[u].size();i=cur[u]){
-		ll v=e[u][i];cur[u]=i+1;
-		dfs(v);
-	}ans[++c]=u;
-}
-int main(){
-	n=d,m=d;f(i,1,m){
-		ll u=d,v=d;
-		e[u].pb(v);
-		in[v]++,out[u]++;
-	}f(i,1,n)sort(e[i].begin(),e[i].end());
-	ll x = -1, y = -1; // x: start, y: end
-	f(i,1,n){
-		// if(i==1)cout<<in[i]<<" "<<out[i]<<endl;
-		if(in[i]==out[i])continue;
-		if(abs(in[i]-out[i])>1){pn;return 0;}
-		if(in[i]==out[i]+1){if(y!=-1){pn;return 0;}y=i;}
-		if(in[i]==out[i]-1){if(x!=-1){pn;return 0;}x=i;}
-	}if(x==-1)x=1;dfs(x);
-	for(int i=c;i>=1;i--)cout<<ans[i]<<" ";
-	return 0;
+vector<int> euler_directed(int n,const vector<pair<int,int>>& edges){
+    if(n<=0)return {};
+    vector<vector<int>> g(n+1);vector<int> in(n+1),out(n+1),cur(n+1);
+    for(auto [u,v]:edges){g[u].push_back(v);out[u]++;in[v]++;}
+    int start=-1,finish=-1;
+    for(int u=1;u<=n;u++){
+        if(out[u]-in[u]==1){if(start!=-1)return {};start=u;}
+        else if(in[u]-out[u]==1){if(finish!=-1)return {};finish=u;}
+        else if(in[u]!=out[u])return {};
+        sort(g[u].begin(),g[u].end());
+    }
+    if((start==-1)!=(finish==-1))return {};
+    if(start==-1){start=1;for(int u=1;u<=n;u++)if(out[u]){start=u;break;}}
+    vector<int> st{start},path;
+    while(!st.empty()){
+        int u=st.back();
+        if(cur[u]<int(g[u].size()))st.push_back(g[u][cur[u]++]);
+        else path.push_back(u),st.pop_back();
+    }
+    if(path.size()!=edges.size()+1)return {};
+    reverse(path.begin(),path.end());return path;
 }
 \end{lstlisting}
 
-\paragraph{无向图}
-无向图：把经过过的边标记一下不要走即可 (Hierholzer 算法)。
-
+\paragraph{使用条件与多测} 无向图需给每条边一个共享编号，经过时标记该编号而不是两个方向各算一次；要求奇度点恰为 0 或 2，起点选非零度点／奇度点，同样验证最终使用所有边。

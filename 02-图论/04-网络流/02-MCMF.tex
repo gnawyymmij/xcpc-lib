@@ -7,10 +7,13 @@ void add(ll u,ll v,ll w,ll c){e[++cnt]={u,v,w,c,hd[u]};hd[u]=cnt;}
 void ad(ll u,ll v,ll w,ll c){add(u,v,w,c),add(v,u,0,-c);}
 ll n,m,S,T,nodes;
 ll cst;
+void init_mcmf(int count,int source,int sink){
+    nodes=count;S=source;T=sink;cnt=1;cst=0;fill(hd,hd+nodes+1,0);
+}
 ll pre[100010];
 ll dis[100010];
 ll h[100010];
-#define inf 0x3f3f3f3f
+const ll inf=LLONG_MAX/4;
 ll arg(){
     ll u,v=T,fl=inf;
     while(v!=S)u=pre[v],fl=min(fl,e[u].w),v=e[u].u;
@@ -38,16 +41,18 @@ bool dij(){
     return dis[T]!=inf;
 }
 array<ll,2> mcmf(){
-    ll fl=0;
+    if(S==T)return {0,0};
+    ll fl=0;cst=0;
     while(dij()){
         fl+=arg();
-        f(i,1,nodes)h[i]+=dis[i];
+        f(i,1,nodes)if(dis[i]!=inf)h[i]+=dis[i];
         // f(i,1,nodes)cout<<h[i]<<" ";cout<<endl;
     }return {fl,cst};
 }
 void spfa(ll s){
     queue<ll>q;
-    fill(h+1,h+nodes+1,inf);
+    fill(h,h+nodes+1,inf);
+    fill(in,in+nodes+1,false);
     h[s]=0;q.push(s);in[s]=1;
     while(!q.empty()){
         ll u=q.front();q.pop();in[u]=0;
@@ -61,7 +66,7 @@ void spfa(ll s){
     }
 }
 int main(){
-    n=d,m=d,S=d,T=d;nodes=n;
+    n=d,m=d,S=d,T=d;init_mcmf(n,S,T);
     f(i,1,m){
         ll u=d,v=d,w=d,c=d;
         ad(u,v,w,c);
@@ -71,3 +76,5 @@ int main(){
     return 0;
 }
 \end{lstlisting}
+
+\paragraph{使用条件与多测} 每组重建 hd、cnt=1、cst=0，读完全部边后 spfa(S) 再 mcmf()。仅更新有限距离点的势能，避免不可达点反复加 INF 溢出；固定残量网络增广不会使原来不可达的顶点突然可达。若另行增删边或换源，必须重算势能。初始源可达残量图不得含负费用环，否则 SPFA 可能不终止；任意负环网络须用后文负权边转化或消圈算法。容量、距离、势能、流量乘费用及总费用须满足 ll 范围，INF 必须大于所有合法最短路。复杂度为初始 SPFA 加 $O(A E\log V)$，A 是增广次数，非强多项式。
