@@ -70,7 +70,7 @@ void init_dynamic_scc(int n){
     }
 }
 void solve_dynamic_scc(int n,const vector<pair<int,int>>& edges){
-    assert(n<100010&&edges.size()<100010);init_dynamic_scc(n);
+    init_dynamic_scc(n);
     vector<array<int,3>> E;
     for(int i=0;i<int(edges.size());i++){
         auto [u,v]=edges[i];U[i+1]=u;V[i+1]=v;E.push_back({u,v,i+1});
@@ -79,7 +79,4 @@ void solve_dynamic_scc(int n,const vector<pair<int,int>>& edges){
 }
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 这是离线计算前缀强连通合并事件的片段，不支持在线删边。每组先初始化并查集，再清 node 并清零 tim、tp、scc、dfn、low、in、bel 及邻接表；给 U[i],V[i] 赋原始端点，再建立 E=(U[i],V[i],i)，调用 work(1,m,E)，$m=0$ 时跳过。con 若另有业务用途也须逐组清空。叶子中 un 的调用顺序按时间递增，可在该处记录事件；函数返回后仅保留最终并查集，不会自动输出各时刻答案。已用按大小合并避免并查集深链；Tarjan 递归深度仍按题目处理。总体按每层边数计 $O((n+m)\log m)$ 次图工作，空子问题已剪枝。
-
-\paragraph{使用条件与多测} 已补 init\_dynamic\_scc 与 solve\_dynamic\_scc 入口；仅求最终合并结果可直接调用后者。需要各时刻答案时，在 work 的叶子中记录事件，不能将算法返回后的最终 fa 当作历史状态。
+\paragraph{多测与注意} 每组可直接 solve\_dynamic\_scc(n,edges)，已封装清空和并查集初始化。此处是离线加边；若要各时刻答案，在 work 的叶子记录合并事件，返回后的 fa 只有最终状态。

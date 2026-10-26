@@ -25,4 +25,4 @@ vector<int> euler_directed(int n,const vector<pair<int,int>>& edges){
 }
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 无向图需给每条边一个共享编号，经过时标记该编号而不是两个方向各算一次；要求奇度点恰为 0 或 2，起点选非零度点／奇度点，同样验证最终使用所有边。
+\paragraph{多测与注意} 局部变量直接多测。无向图需改成共享边编号判重，并判断奇度点为 0 或 2；仍要检查是否用尽所有边。不要求字典序时去掉排序。

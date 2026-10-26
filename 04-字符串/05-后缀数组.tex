@@ -1,5 +1,5 @@
 \subsection{后缀数组 (Suffix Array - SA)}
-倍增加两趟计数排序，时间 $O(n\log n)$、空间 $O(n)$；支持任意字节和空串。sa 为 0 下标后缀起点，rank 为 0 下标排名，lcp[i] 是 sa[i] 与 sa[i-1] 的 LCP，lcp[0]=0。所有状态在每次 build 中重建。
+倍增后缀数组，sa 为后缀起点，rank 为排名，lcp[i] 为 sa[i] 与 sa[i-1] 的 LCP。
 \begin{lstlisting}
 struct SuffixArray {
     vector<int> sa,rank,lcp;
@@ -37,3 +37,5 @@ struct SuffixArray {
     }
 };
 \end{lstlisting}
+
+\paragraph{多测与注意} 每次 build 重建状态，SA、rank 均为 0 下标，lcp[0]=0。时间 $O(n\log n)$，空间 $O(n)$。

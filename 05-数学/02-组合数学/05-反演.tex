@@ -1,7 +1,7 @@
 \subsubsection{反演}
 \begin{enumerate}
 	\item 二项式反演
-	
+
 	$$f(n) = \sum_{i=0}^{n} \binom{n}{i} g(i) \iff g(n) = \sum_{i=0}^{n} (-1)^{n-i} \binom{n}{i} f(i)$$
 
 $$f(k) = \sum_{i=k}^{n} \binom{i}{k} g(i) \iff g(k) = \sum_{i=k}^{n} (-1)^{i-k} \binom{i}{k} f(i)$$
@@ -21,5 +21,4 @@ $$f(k) = \sum_{i=k}^{n} \binom{i}{k} g(i) \iff g(k) = \sum_{i=k}^{n} (-1)^{i-k} 
 	边界条件：$S(n,n)=1,S(n,0)=0(n>0)$，两类都是。
 \end{enumerate}
 
-
-\paragraph{使用条件与多测} 两类 Stirling 数都有 $S(0,0)=1$；$n>0$ 时 $S(n,0)=0$、$S(n,n)=1$，越界项为 0。第一类在这里是无符号版本，因此反演式中的 $(-1)^{n-k}$ 不能省略。固定上限与模数时预处理表可跨组复用，滚动数组每轮和每组须清目标行。
+\paragraph{多测与注意} 两类均有 S(0,0)=1；这里第一类 Stirling 数无符号。固定上限与模数时复用预处理，滚动数组清目标行。

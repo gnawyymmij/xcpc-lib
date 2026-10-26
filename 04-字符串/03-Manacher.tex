@@ -1,5 +1,5 @@
 \subsection{Manacher}
-返回最长回文子串长度，空串返回 0。分隔符使用整数 256，与任意字节均不同；每次调用全部状态为局部变量，支持直接多测。时间、空间均为 $O(n)$。
+Manacher，返回最长回文子串长度。
 \begin{lstlisting}
 int manacher(const string& s){
     vector<int> a(1,256);
@@ -16,3 +16,5 @@ int manacher(const string& s){
     return ans;
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 局部变量直接多测，返回最长回文长度。时间、空间 $O(n)$。

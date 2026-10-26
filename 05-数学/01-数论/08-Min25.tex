@@ -1,5 +1,5 @@
 \subsubsection{Min25}
-Min25 示例：积性函数满足 $f(p^e)=p^e(p^e-1)$，求 $\sum_{i=1}^n f(i)$ 模 $10^9+7$。一般函数需要替换质数处点值和及素数幂处取值，不能只把一般积性函数拆成完全积性函数后直接组合答案。定义 $S(m,j)$ 为不含前 j 个素因子的 $2..m$ 的函数和，最终答案是 $S(n,0)+1$。数组按 $\sqrt n$ 和实际商块数动态分配，修复原固定容量无法覆盖所声称 $10^{11}$ 范围的问题。每次 sum(n) 重新初始化；时间为 Min25 筛及素数幂递归的实际开销，不承诺固定秒数。
+Min25 示例：积性函数满足 $f(p^e)=p^e(p^e-1)$，求前缀和模 $10^9+7$；最终为 S(n,0)+1。
 \begin{lstlisting}
 struct Min25 {
     static constexpr ll mod=1000000007;
@@ -23,7 +23,6 @@ struct Min25 {
         return ans;
     }
     ll sum(ll input){
-        assert(input>=0&&input<=100000000000LL);
         if(input<1)return 0;n=input;lim=sqrtl(n);
         while(ll(lim+1)<=n/(lim+1))lim++;
         while(ll(lim)>n/lim)lim--;
@@ -58,4 +57,4 @@ struct Min25 {
 };
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 本实现范围 $0\le n\le10^{11}$，仍须按实际内存和时限判断是否可行，$O(\sqrt n)$ 存储；不是针对完整 64 位区间设计的接口。素数前缀表可针对固定最大上界复用，但本实现选择逐次重建以明确多测语义。
+\paragraph{多测与注意} 每次 sum 重建状态，空间 $O(\sqrt n)$，规模按实际时空权衡。换积性函数需同时改质数点值前缀和及素数幂处取值。

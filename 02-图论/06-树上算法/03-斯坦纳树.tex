@@ -7,7 +7,7 @@ ll steiner_tree(const vector<vector<pair<int,ll>>>& g,vector<int> terminal){
     sort(terminal.begin(),terminal.end());
     terminal.erase(unique(terminal.begin(),terminal.end()),terminal.end());
     int k=terminal.size();if(!k)return 0;
-    assert(k<20); // memory, not just shift width, is the real constraint
+
     int all=1<<k;vector<vector<ll>> dp(all,vector<ll>(n+1,INF));
     for(int i=0;i<k;i++)dp[1<<i][terminal[i]]=0;
     for(int mask=1;mask<all;mask++){
@@ -20,7 +20,6 @@ ll steiner_tree(const vector<vector<pair<int,ll>>>& g,vector<int> terminal){
         while(!q.empty()){
             auto [distance,u]=q.top();q.pop();if(distance!=dp[mask][u])continue;
             for(auto [v,w]:g[u]){
-                assert(w>=0&&w<INF);
                 if(distance<=INF-w&&distance+w<dp[mask][v])
                     dp[mask][v]=distance+w,q.push({distance+w,v});
             }
@@ -29,3 +28,5 @@ ll steiner_tree(const vector<vector<pair<int,ll>>>& g,vector<int> terminal){
     return *min_element(dp.back().begin()+1,dp.back().end());
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 局部状态直接多测。终端数 k 要小，时间 $O(3^k n+2^k(m+n)\log n)$、空间 $O(2^k n)$；图为非负权，不连通返回 INF。

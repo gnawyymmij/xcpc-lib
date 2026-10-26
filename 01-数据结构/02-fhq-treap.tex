@@ -8,7 +8,6 @@ struct node{
     ll sz,num;
 }t[1000010];ll cur=0;
 ll newnode(ll val){
-    assert(cur+1<(ll)size(t));
     t[++cur]={0,0,val,rng(),1,1};
     return cur;
 }void upd(ll p){
@@ -55,7 +54,6 @@ ll rk(ll val){// 1 + (# of < val)
     return res;
 }
 ll findkth(ll p,ll k){
-    if(k<1||k>t[p].sz)throw out_of_range("kth");
     while(1){
         if(t[t[p].ls].sz>=k)p=t[p].ls;
         else if(t[t[p].ls].sz+t[p].num>=k)return t[p].val;
@@ -64,13 +62,11 @@ ll findkth(ll p,ll k){
 }
 ll pred(ll val){ // max_{x<val} x
     ll x,y;split_lt(rt,val,x,y);
-    if(!x){rt=merge(x,y);throw out_of_range("no predecessor");}
     ll res=findkth(x,t[x].sz);
     rt=merge(x,y);
     return res;
 }ll succ(ll val){ // min_{x>val} x
     ll x,y;split(rt,val,x,y);
-    if(!y){rt=merge(x,y);throw out_of_range("no successor");}
     ll res=findkth(y,1);
     rt=merge(x,y);
     return res;
@@ -89,7 +85,6 @@ struct node{
 #define ls(p) (t[(p)].ls)
 #define rs(p) (t[(p)].rs)
 int newnode(ll x){
-    assert(cnt+1<(ll)size(t));
     t[++cnt]={0,0,x,rng(),1,1,0};
     return cnt;
 }
@@ -119,4 +114,4 @@ ll rt;
 void init(){cnt=rt=0;t[0]={};}
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 两个代码块为独立备选实现；每组开始调用各自的 \texttt{init()}，复用节点时由 newnode 整体赋值，不必清空整个池。节点池容量按单组累计新建数计算，删除不会回收编号。排名分裂要求每个节点 num 为 1、分裂数量合法；查询排名越界或不存在前驱／后继会抛异常，调用方应事先判断。期望 $O(\log n)$，随机退化及递归深度仍需留意。
+\paragraph{多测与注意} 两份独立选用，每组 init()。节点池按单组累计新建数开，删除不回收编号。排名分裂版每个节点 num=1；kth／前驱／后继查询默认合法，若题目不保证则自行判断或加哨兵。

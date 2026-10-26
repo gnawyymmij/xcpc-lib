@@ -3,7 +3,7 @@
 \begin{lstlisting}
 ll bostan_mori(poly::Poly P,poly::Poly Q,unsigned long long m){
     using namespace poly;
-    trim(P);trim(Q);assert(!Q.empty()&&Q[0]);
+    trim(P);trim(Q);
     if(P.empty())return 0;
     while(m){
         Poly neg=Q;for(int i=1;i<int(neg.size());i+=2)neg[i]=(mod-neg[i])%mod;
@@ -16,4 +16,4 @@ ll bostan_mori(poly::Poly P,poly::Poly Q,unsigned long long m){
 }
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 次数为 d 时通常为 $O(d\log d\log(m+1))$；输入分子次数很大时复杂度也依赖其长度。常数分母与 m=0 同样可用。
+\paragraph{多测与注意} 依赖 poly，Q[0] 非零；参数按值传入，可直接多测。通常 $O(d\log d\log(m+1))$。

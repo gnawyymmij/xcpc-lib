@@ -1,14 +1,14 @@
 \subsection{C++ 手动上下取整}
-利用 C++ 向零截断的商和余数修正，避免原版 $(x+y-1)$ 以及对 LLONG\_MIN 取负导致溢出。除零和 LLONG\_MIN/-1 的不可表示商抛异常，无可变状态，可直接多测。
+C++ 商向零截断，按余数符号修正为向下／向上取整。
 \begin{lstlisting}
 ll Floor(ll x,ll y){
-    if(!y||(x==LLONG_MIN&&y==-1))throw domain_error("invalid division");
     ll q=x/y,r=x%y;
     return q-(r!=0&&((r<0)!=(y<0)));
 }
 ll Ceil(ll x,ll y){
-    if(!y||(x==LLONG_MIN&&y==-1))throw domain_error("invalid division");
     ll q=x/y,r=x%y;
     return q+(r!=0&&((r<0)==(y<0)));
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 无共享状态。默认除数非零且商能由 ll 表示；按余数符号修正，避免 x+y-1 的额外溢出。

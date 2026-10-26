@@ -19,3 +19,5 @@ void dfs_up(int u,int parent){
     }
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 每组重建图，dfs\_down 后令 up[root]=0 再 dfs\_up。答案为 max(down[u],up[u])，距离单位是边数；带权树将 +1 改为边权并按题意处理负权。

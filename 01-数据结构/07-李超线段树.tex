@@ -42,7 +42,6 @@ struct LiChao {
         root=cover(root,LO,HI,L,R,int(lines.size())-1);
     }
     i128 query(int x)const{
-        assert(LO<=x&&x<=HI);
         int p=root,l=LO,r=HI;i128 ans=INF;
         while(p){
             ans=min(ans,value(tr[p].id,x));if(l==r)break;
@@ -55,6 +54,6 @@ struct LiChao {
 };
 \end{lstlisting}
 
-\newpage
+\paragraph{多测与注意} 每组 clear()。LO、HI 按题目横坐标设；add\_segment 用闭区间，题目给 $[l,r)$ 时传 $[l,r-1]$。无覆盖返回 INF，查询值为 128 位；实数题另用浮点版本。
 
-\paragraph{使用条件与多测} 每组调用 clear()（构造时自动调用）；节点池按实际使用增长，无旧节点残留。若题目给 $[l,r)$，先判断 $l<r$ 再插入 $[l,r-1]$。query 返回 INF 表示无覆盖，否则返回 128 位整数，须按值域选择输出方法，不要未经检查强转 ll。此版本不支持实数横坐标；实数题需另写浮点版本及误差策略。
+\newpage

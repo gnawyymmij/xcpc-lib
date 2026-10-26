@@ -9,9 +9,9 @@ struct AhoCorasick {
     AhoCorasick(){clear();}
     void clear(){t.assign(1,{});order.clear();built=false;}
     int add(const string& s){
-        assert(!built&&!s.empty());int u=0;
+        int u=0;
         for(char c:s){
-            int x=c-'a';assert(0<=x&&x<26);
+            int x=c-'a';
             if(!t[u].next[x]){
                 int v=t.size();t.push_back({});t[u].next[x]=v;
             }
@@ -20,7 +20,7 @@ struct AhoCorasick {
         return u;
     }
     void build(){
-        assert(!built);queue<int> q;
+        queue<int> q;
         for(int v:t[0].next)if(v)q.push(v);
         while(!q.empty()){
             int u=q.front();q.pop();order.push_back(u);
@@ -33,8 +33,8 @@ struct AhoCorasick {
         built=true;
     }
     vector<ll> match(const string& s)const{
-        assert(built);vector<ll> count(t.size());int u=0;
-        for(char c:s){int x=c-'a';assert(0<=x&&x<26);u=t[u].next[x];count[u]++;}
+        vector<ll> count(t.size());int u=0;
+        for(char c:s){int x=c-'a';u=t[u].next[x];count[u]++;}
         for(int i=int(order.size())-1;i>=0;i--){
             int v=order[i];count[t[v].fail]+=count[v];
         }
@@ -43,4 +43,4 @@ struct AhoCorasick {
 };
 \end{lstlisting}
 
-\paragraph{使用条件与多测} build 会补全所有转移，不能再次 build 或继续 add；下一组必须 clear。空模式未定义且禁止插入。稀疏字符集版本需独立使用真实 trie 边，根的 fail 为 0 或显式跳根特判，不能直接沿用本实现补全后的转移或把 fail[root] 设为 root 后无条件跳 fail，否则可能死循环。
+\paragraph{多测与注意} 每组 clear，插完全部模式后 build，再 match。build 补全转移后不要继续插入或重复 build；大字符集改稀疏转移。

@@ -38,7 +38,7 @@ node work(ll a,ll b,ll n,ll m,node U,node R){
 node U,R;
 
 // 使用例：\sum_{i=0}^{n-1} \lfloor\frac{ai+b}{m}\rfloor
-// for b>=m, use opow(U,b/m)+work(a,b%m,n,m,U,R) to obtain the result. 
+// for b>=m, use opow(U,b/m)+work(a,b%m,n,m,U,R) to obtain the result.
 void solve(){
 	U=(node){0,1,0},R=(node){0,0,1};
     n=d,m=d;ll a=d,b=d;
@@ -49,5 +49,4 @@ void solve(){
 }
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 要求 $n\ge0,m>0,a\ge0,b\ge0$，work 的参数还要求 $b<m$；每次 solve 都重新构造 U、R，状态不跨组保存。中间整除必须用精确整数，不可用 long double 替代；cu、复合操作 numU/numR/s 的最终范围仍须保证在 ll 内，较大 floor sum 应将 node 的数值整体改为 128 位。时间 $O(\log m\log(n+a+1))$ 的保守界，取决于操作快速幂。
+\paragraph{多测与注意} 每组重建 U、R。work 要求 $a\ge0,0\le b<m$，更大的 b 先提出整段 U。整除中间积用 128 位；若答案大，node 的累加量也改 128 位。

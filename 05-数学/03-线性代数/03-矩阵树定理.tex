@@ -6,9 +6,9 @@ The sum of weights of all spanning trees is given by the cofactor of the Laplaci
 
 \textbf{1. Undirected Graph}
 \[
-L_{ij} = \begin{cases} 
-\deg(i) & i = j \\ 
--w_{ij} & i \neq j 
+L_{ij} = \begin{cases}
+\deg(i) & i = j \\
+-w_{ij} & i \neq j
 \end{cases}
 \]
 \textbf{Result:} $\det(L)$ after removing \textbf{any} $k$-th row and column.
@@ -18,16 +18,16 @@ Remove the $r$-th row and column from $L$ to calculate determinant.
 
 \noindent \textbf{A. Out-Tree ($r \to \text{all}$):} Use \textbf{In-Degree} \& $A^T$.
 \[
-L_{ij} = \begin{cases} 
-\deg^{in}(i) & i = j \\ 
+L_{ij} = \begin{cases}
+\deg^{in}(i) & i = j \\
 -w_{ji} & i \neq j \quad (\text{edge } j \to i)
 \end{cases}
 \]
 
 \noindent \textbf{B. In-Tree ($\text{all} \to r$):} Use \textbf{Out-Degree} \& $A$.
 \[
-L_{ij} = \begin{cases} 
-\deg^{out}(i) & i = j \\ 
+L_{ij} = \begin{cases}
+\deg^{out}(i) & i = j \\
 -w_{ij} & i \neq j \quad (\text{edge } i \to j)
 \end{cases}
 \]
@@ -57,4 +57,4 @@ void solve(){
 }
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 每组必须先清整个当前 $n\times n$ 矩阵，已在 solve 开头补上；自环对生成树无贡献，建矩阵时应忽略（代码的加减会抵消）。平行边权相加；加权度数是边权和而非边数。原矩阵压缩与 det 均破坏输入；多次删不同根时须从副本构造。权值要处于交换环中，仅“有交换律”不够；若调用前文 Fermat 消元，仍要求素数模，形式幂级数不能直接套除法实现。$n=1$ 答案为 1。
+\paragraph{多测与注意} 每组清当前矩阵，solve 已补。重边权值相加，自环抵消；多次换根计算时保留原矩阵副本。调用上方 det 时要求素数模。

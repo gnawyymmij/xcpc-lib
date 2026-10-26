@@ -105,4 +105,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 每组先执行 main 中的节点初始化，再赋点权；零号节点始终为全零哨兵。main 的单组逻辑可提取为 solve 后放入多测循环。路径查询前须确认 find(x)==find(y)；link 拒绝成环，cut 只删除真实存在的边。点权使用 int；本模板是异或而非求和。
+\paragraph{多测与注意} 将 main 的单组部分放进 solve 即可，节点字段已按本组清零。路径查询默认两点连通；维护的是异或，点权修改后要 upd。

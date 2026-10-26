@@ -17,4 +17,6 @@ optional<vector<int>> solve_2sat(int n){
 }
 \end{lstlisting}
 
+\paragraph{多测与注意} 每组调用 Tarjan 的 init(2*n)，再加子句并 solve\_2sat。文字编号约定见上文；返回空 optional 表示无解。
+
 \newpage

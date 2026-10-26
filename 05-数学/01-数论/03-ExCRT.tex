@@ -1,5 +1,5 @@
 \subsubsection{ExCRT (Extended Chinese Remainder Theorem)}
-合并 $x\equiv A\pmod B$ 与 $x\equiv a\pmod b$。返回 false 表示无解且不修改 A、B；模数必须为正，合并后的最小公倍数超过 ll 时抛异常。内部 128 位计算，避免原版解系数乘积溢出。每组从 A=0、B=1 开始；无解后本组剩余约束仍需读完。
+合并 $x\equiv A\pmod B$ 与 $x\equiv a\pmod b$，返回是否有解。
 \begin{lstlisting}
 using i128=__int128_t;
 i128 egcd128(i128 a,i128 b,i128& x,i128& y){
@@ -7,15 +7,15 @@ i128 egcd128(i128 a,i128 b,i128& x,i128& y){
     i128 u,v,g=egcd128(b,a%b,u,v);x=v;y=u-a/b*v;return g;
 }
 bool merge(ll &A,ll &B,ll a,ll b){
-    assert(B>0&&b>0);
     i128 aa=((i128)A%B+B)%B,bb=((i128)a%b+b)%b;
     i128 x,y,g=egcd128(B,b,x,y),diff=bb-aa;
     if(diff%g)return false;
     i128 period=(i128)B/g*b;
-    if(period>LLONG_MAX)throw overflow_error("CRT modulus overflow");
     i128 step=(diff/g*x)%(b/g);
     i128 answer=(aa+(i128)B*step)%period;
     if(answer<0)answer+=period;
     A=(ll)answer;B=(ll)period;return true;
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 每组 A=0、B=1 开始合并；返回 false 即无解，本组剩余输入仍要读完。模数为正；合并后的周期过大时将 A、B 一并改 128 位。

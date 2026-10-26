@@ -1,11 +1,11 @@
-统一使用 vector 版本：系数下标为次数，所有精度参数 n 指保留 n 项（模 $x^n$），不再混用最高次数。固定模数 998244353，系数输入须归一化到 $[0,mod)$。每次运算的临时数组为局部变量，无需多测清空；卷积为 $O(n\log n)$，Newton 求逆／对数／指数／幂及除法为相应精度的 $O(n\log n)$。NTT 长度不超过 $2^{23}$；Ln 要求常数项为 1，Exp 要求常数项为 0，Inv 和除法的分母须可逆。
+多项式全家桶，vector 版；固定模数 998244353。支持 NTT、乘法、求逆、对数、指数、幂与带余除法。
 \begin{lstlisting}
 namespace poly {
 const ll mod=998244353;
 using Poly=vector<ll>;
 ll qp(ll a,ll b=mod-2){ll r=1;for(;b;b>>=1,a=a*a%mod)if(b&1)r=r*a%mod;return r;}
 void NTT(Poly& a,bool inverse){
-    int n=a.size();assert(n&&!(n&(n-1))&&n<=(1<<23));
+    int n=a.size();
     for(int i=1,j=0;i<n;i++){
         int bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;
         if(i<j)swap(a[i],a[j]);
@@ -29,7 +29,6 @@ Poly Mul(Poly a,Poly b){
         Poly c(size);for(int i=0;i<int(a.size());i++)for(int j=0;j<int(b.size());j++)c[i+j]=(c[i+j]+a[i]*b[j])%mod;
         return c;
     }
-    if(size>(1<<23))throw length_error("NTT capacity exceeded");
     int n=1;while(n<size)n<<=1;a.resize(n);b.resize(n);
     NTT(a,false);NTT(b,false);
     for(int i=0;i<n;i++)a[i]=a[i]*b[i]%mod;
@@ -37,7 +36,7 @@ Poly Mul(Poly a,Poly b){
 }
 Poly Inv(const Poly& a,int n=-1){
     if(n<0)n=a.size();if(!n)return {};
-    assert(!a.empty()&&a[0]);Poly g{qp(a[0])};
+    Poly g{qp(a[0])};
     while(int(g.size())<n){
         int k=min(n,int(g.size())*2);Poly prefix(a.begin(),a.begin()+min(k,int(a.size())));
         Poly t=Mul(prefix,g);t.resize(k);
@@ -51,17 +50,17 @@ Poly Dev(const Poly& a){
     Poly b(a.size()-1);for(int i=1;i<int(a.size());i++)b[i-1]=a[i]*i%mod;return b;
 }
 Poly Int(const Poly& a){
-    assert(a.size()<size_t(mod));Poly b(a.size()+1),iv(a.size()+1);
+    Poly b(a.size()+1),iv(a.size()+1);
     if(!a.empty())iv[1]=1;
     for(int i=2;i<=int(a.size());i++)iv[i]=(mod-mod/i)*iv[mod%i]%mod;
     for(int i=0;i<int(a.size());i++)b[i+1]=a[i]*iv[i+1]%mod;return b;
 }
 Poly Ln(const Poly& a,int n){
-    if(!n)return {};assert(!a.empty()&&a[0]==1);
+    if(!n)return {};
     Poly b=Mul(Dev(a),Inv(a,n));b.resize(n-1);b=Int(b);b.resize(n);return b;
 }
 Poly Exp(const Poly& a,int n){
-    if(!n)return {};assert(a.empty()||a[0]==0);Poly g{1};
+    if(!n)return {};Poly g{1};
     while(int(g.size())<n){
         int k=min(n,int(g.size())*2);Poly log=Ln(g,k),t(k);
         for(int i=0;i<k;i++)t[i]=((i<int(a.size())?a[i]:0)-log[i]+mod)%mod;
@@ -83,7 +82,7 @@ Poly Pow(const Poly& a,unsigned long long exponent,int n){
 }
 void trim(Poly& a){while(!a.empty()&&!a.back())a.pop_back();}
 pair<Poly,Poly> Div(Poly a,Poly b){
-    trim(a);trim(b);if(b.empty())throw invalid_argument("zero divisor");
+    trim(a);trim(b);
     if(a.size()<b.size())return {{},a};
     int k=a.size()-b.size()+1;Poly ar=a,br=b;
     reverse(ar.begin(),ar.end());reverse(br.begin(),br.end());ar.resize(k);
@@ -94,4 +93,4 @@ pair<Poly,Poly> Div(Poly a,Poly b){
 } // namespace poly
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 接口相较旧指针版已变更：Mul(a,b)、Inv(a,n)、Ln(a,n)、Exp(a,n)、Pow(a,k,n)、Div(a,b)（返回商与余数）；输入不会被修改。零多项式在 trim/Div 中可表示为空 vector。$0^0$ 约定为 1；空精度 n=0 返回空。不同操作的中间卷积长度也须在 NTT 容量内，不能只按最终 n 判断。
+\paragraph{多测与注意} 局部向量直接多测。精度 n 表示保留 n 项，多项式下标为次数。Ln 需 a[0]=1，Exp 需 a[0]=0，Inv／除法需分母可逆。固定模数的 NTT 长度最多 $2^{23}$，包括中间卷积。

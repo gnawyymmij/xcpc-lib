@@ -11,3 +11,5 @@ vector<vector<int>> block_cut_forest(const Biconnected& b){
     return tree; // skipped singleton squares are unused IDs
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 依赖前文 Biconnected，先 run 再调用；返回新的邻接表，多测不需额外清理。非连通图得到森林，孤立圆点保留。

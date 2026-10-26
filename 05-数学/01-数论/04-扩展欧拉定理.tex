@@ -4,5 +4,4 @@ $$
 a^b \equiv \begin{cases} a^b, & b < \varphi(m)\\ a^{b \bmod \varphi(m) + \varphi(m)}, & b\geq \varphi(m)\end{cases} \pmod{m}
 $$
 
-
-\paragraph{使用条件与多测} 要求模数 $m>0$、指数 $b\ge0$；$m=1$ 结果恒为 0，通常约定 $0^0=1$ 后再取模。必须同时维护“原指数是否达到 $\varphi(m)$”的信息，不能只保存取模后的指数。$\varphi(m)$ 的缓存仅在模数相同时可复用；变模数须重算。
+\paragraph{多测与注意} 递归幂塔需同时记指数是否达到 $\varphi(m)$，不能只存指数的余数。m=1 结果为 0，phi 预处理按题目模数选择。

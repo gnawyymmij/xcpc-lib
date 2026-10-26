@@ -58,5 +58,4 @@ int main(){srand(time(0));
 }
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 本版本输入为正 signed long long，Miller--Rabin 的七基数覆盖该范围；底数先模 n，模 n 为 0 时须跳过，已修复会把 73 等质数误判的情况。每个输入将 mxp=0；随机数引擎跨组保留。work 只求最大质因子，不返回完整分解；$n=1$ 无质因子，应由题意单独处理。Pollard--Rho 为随机期望算法，无固定最坏时限；不要把此 ll 接口直接用于完整 unsigned 64 位范围。
+\paragraph{多测与注意} 每个输入 mxp=0，随机引擎跨组保留。此处求最大质因子，n=1 按题意特判；使用 signed long long，完整 unsigned 范围需换相应类型。

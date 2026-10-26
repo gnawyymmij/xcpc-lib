@@ -1,5 +1,5 @@
 \subsection{回文自动机 (Palindrome Automaton - PAM)}
-小写字母回文自动机，add 返回以当前字符结尾的不同回文长度数量（即当前回文后缀数）；不含原题特定的输入字符加密。每组 clear；总时间 $O(26n)$（固定字符集视作线性）、空间 $O(26n)$。
+小写字母回文自动机，维护回文后缀数与各回文出现次数。
 \begin{lstlisting}
 struct PalindromicTree {
     struct Node{array<int,26> next{};int len=0,fail=0,suffixes=0;ll occ=0;};
@@ -17,7 +17,7 @@ struct PalindromicTree {
         return u;
     }
     int add(char c){
-        int x=c-'a';assert(0<=x&&x<26);text.push_back(x);
+        int x=c-'a';text.push_back(x);
         int u=getfail(last);
         if(!t[u].next[x]){
             int v=t.size();t.push_back({});t[v].len=t[u].len+2;
@@ -35,5 +35,7 @@ struct PalindromicTree {
     }
 };
 \end{lstlisting}
+
+\paragraph{多测与注意} 每组 clear。add 返回当前回文后缀数，occurrences 返回各节点总出现次数；若题目有字符加密，在调用方处理。
 
 \newpage

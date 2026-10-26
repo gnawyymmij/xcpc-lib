@@ -1,5 +1,5 @@
 \subsubsection{负环 (Negative Cycle Detection - SPFA)}
-检测整张有向图是否存在负环，包括与 1 不连通的分量。所有点以距离 0 入队，相当于添加超级源；每次松弛记录路径边数而非入队次数，达到 $n$ 即判负环。局部状态支持直接多测；最坏 $O(nm)$，SPFA 不保证随机数据下的性能。
+SPFA 检测全图负环：全部点以距离 0 入队，用松弛路径边数判环。
 \begin{lstlisting}
 bool negative_cycle(const vector<vector<pair<int,ll>>>& g){
     int n=int(g.size())-1; // vertices 1..n
@@ -18,3 +18,5 @@ bool negative_cycle(const vector<vector<pair<int,ll>>>& g){
     return false;
 }
 \end{lstlisting}
+
+\paragraph{多测与注意} 局部变量可直接多测，图由调用方重建。这里检测全图负环；若只查源可达负环则仅将源入队。SPFA 最坏 $O(nm)$。

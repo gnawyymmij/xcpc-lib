@@ -39,7 +39,6 @@ pair<ll,vector<int>> KM(int n,int m){
 array<ll,2> sparse_matching(int left,int right,
                           const vector<tuple<int,int,ll>>& edges){
     nodes=left+right+2;S=left+right+1;T=S+1;
-    assert(nodes<100010&&2*(left+right+edges.size())+2<1000010);
     fill(hd,hd+nodes+1,0);cnt=1;cst=0;
     for(int u=1;u<=left;u++)ad(S,u,1,0);
     for(int v=1;v<=right;v++)ad(left+v,T,1,0);
@@ -48,4 +47,4 @@ array<ll,2> sparse_matching(int left,int right,
 }
 \end{lstlisting}
 
-\paragraph{使用条件与多测} 稠密 KM 与稀疏 SSP 为两个接口。第一份返回最小费用及左部匹配，要求 $n\le m$、完整有限费用矩阵；每组必须完整覆盖 cst[1..n][1..m]，其余状态局部化。不可用边不要直接当无限大参与减势运算，稀疏图优先用费用流；若用有限哨兵需证明足够大且最终检查是否选到禁边。矩形复杂度 $O(n^2m)$。SSP 适配器依赖前文 MCMF（去掉其 main 后合用），会重建流网络；费用和减势运算不得溢出，目标是最大匹配数下的最小费用，未必完美匹配。复杂度为初始化加每次增广的 $O(E\log V)$。
+\paragraph{多测与注意} KM 每组覆盖本组 cst，要求 $n\le m$，复杂度 $O(n^2m)$。稀疏图用下方 MCMF 适配器，会自动重建图；要求完美匹配时检查流量是否为 n。禁边别直接拿 INF 参与势能运算。

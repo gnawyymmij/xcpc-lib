@@ -78,5 +78,4 @@ void solve_dp(ll extra=0){
 
 和 WQS 合用时，令 \texttt{extra=k}，一次 \texttt{check(k)} 就是一次 $O(n\log n)$ 的上述 DP，于是总复杂度再乘一个 WQS 的二分次数。
 
-
-\paragraph{使用条件与多测} solve\_dp 每次重置 dp[0]、cnt[0]、队列边界；其余 dp/cnt 在使用前被顺序覆盖。cost 的预处理由调用方重建。Monge 条件须证明且两候选含 tie-break 的比较须单次切换；和 WQS 组合时也应验证段数 tie-break 满足该条件，不能只验证数值最优点单调。要求 cost 为 $O(1)$ 才有所述复杂度；中间加法须防溢出。
+\paragraph{多测与注意} solve\_dp 每次重置队列和 dp[0]，其余顺序覆盖。cost 按组重建；$O(n\log n)$ 需要 cost 为 $O(1)$，含 tie-break 的两候选优劣需单次切换。

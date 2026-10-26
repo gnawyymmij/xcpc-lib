@@ -29,5 +29,4 @@ void init(int n){
 }
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 每组读边前调用下面的 init(n)，读完后遍历所有顶点：未访问则 dfs(i)。编号从 1 开始，bel 按逆拓扑序编号；一条 $u\to v$ 的跨分量边满足 bel[u]>bel[v]。时间 $O(n+m)$。深链递归可能栈溢出，按评测栈限制改显式栈。
+\paragraph{多测与注意} 每组 init(n) 后读边，遍历所有未访问点调用 dfs。跨 SCC 的边 $u\to v$ 满足 bel[u]>bel[v]。深链注意递归栈。

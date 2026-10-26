@@ -10,5 +10,4 @@ std::chrono::duration<double> elapsed = end - start;
 std::cerr << "\nRunning: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 使用单调 steady\_clock，避免系统时间调整影响耗时。测单组时将 start/end 放入 solve 内并逐组重建；测整体时放在多测循环外。计时本身不涉及算法状态清理，输出到 cerr 不计入答案输出。
+\paragraph{多测与注意} 测单组就把 start/end 放在 solve 内，测总体则放在多测循环外。

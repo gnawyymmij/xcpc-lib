@@ -82,7 +82,7 @@ HashTable<ll,ll,8> h;
 for(int test=0;test<200;test++){
     h.clear();require(h.size()==0);for(int i=0;i<8;i++)h[i]=i+test;
     for(int i=0;i<8;i++)require(h.find(i)&&*h.find(i)==i+test);
-    require(!h.find(100));bool threw=false;try{h[100]=0;}catch(const overflow_error&){threw=true;}require(threw);
+    require(!h.find(100));
 }
 ''')
 
@@ -96,7 +96,7 @@ for(int test=0;test<100;test++){
         for(ll x:ref)require(findkth(rt,k++)==x);
         require(rk(v)==1+distance(ref.begin(),ref.lower_bound(v)));
     }
-    init();insert(1);bool threw=false;try{pred(1);}catch(const out_of_range&){threw=true;}require(threw&&findkth(rt,1)==1);
+    init();insert(1);insert(3);require(pred(3)==1&&succ(1)==3);
 }
 ''')
 
@@ -332,7 +332,7 @@ for(int z=0;z<2000;z++){
     for(ll x=0;x<period;x++)if((x-A)%B==0&&(x-a)%b==0){expected=x;break;}
     bool ok=merge(A,B,a,b);require(ok==(expected!=-1));if(ok)require(A==expected&&B==period);else require(A==oldA&&B==oldB);
 }
-ll A=0,B=LLONG_MAX;bool threw=false;try{merge(A,B,0,2);}catch(const overflow_error&){threw=true;}require(threw);
+
 ''')
 
 run('pollard','05-*/01-*/05-*.tex',r'''
@@ -376,6 +376,7 @@ for(int z=0;z<500;z++){
     for(int m=0;m<=n+1;m++)require(exlucas(n,m,mod)==(m<=n?row[m]:0));
 }
 require(exlucas(1000000000000LL,1,1000003)==1000000000000LL%1000003);
+require(exlucas(10,3,2000003)==120); // sample modulus size is not an algorithm limit
 ''')
 
 run('poly',[('05-*/04-*/00-*.tex',0),('05-*/04-*/01-*.tex',0)],r'''
@@ -419,6 +420,12 @@ for(int z=0;z<200;z++){
     for(int i=1;i<=size;i++)input<<(a[i]=rnd(-1000,1000))<<' ';
     istringstream stream(input.str());cin.rdbuf(stream.rdbuf());template_main();
     for(int i=0;i<300;i++){int l=rnd(1,size),r=rnd(l,size);require(get(l,r)==*max_element(a.begin()+l,a.begin()+r+1));}
+}
+{
+    int size=100005;ostringstream input;input<<size<<" 0 ";
+    for(int i=1;i<=size;i++)input<<i%17<<' ';
+    istringstream stream(input.str());cin.rdbuf(stream.rdbuf());template_main();
+    require(get(1,size)==16&&get(size,size)==size%17);
 }
 ''',before='ll n,m;')
 

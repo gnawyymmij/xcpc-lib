@@ -79,5 +79,4 @@ void chad(ll u,ll v,ll k){
 }
 \end{lstlisting}
 
-
-\paragraph{使用条件与多测} 每组读边前调用 init\_hld(n)，其中 cnt 为前向星边计数；读完后依次 dfs1(root,0)、dfs2(root,root)、build(1,n,1)。build 已逐节点清零懒标记，dfs1 已清 son。仅用于一棵树，路径操作要求两点连通；递归在链上可能栈溢出，深链须改为显式栈。mod 必须为正，乘法及两个余数相加须在 ll 范围内，否则改用 \texttt{\_\_int128}。
+\paragraph{多测与注意} 每组 init\_hld(n) 后读边，再 dfs1、dfs2、build。dfs1 重置 son，build 重置 lazy。按点权维护；改边权时注意不计 LCA 的位置。
