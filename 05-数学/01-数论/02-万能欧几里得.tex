@@ -30,9 +30,9 @@ node opow(node a,ll b){
 node work(ll a,ll b,ll n,ll m,node U,node R){
     if(!n)return node();//构造函数应该取单位元，若没有单位元则需要小心处理opow里b=0和本行的情况。
     if(a>=m)return work(a%m,b,n,m,U,opow(U,a/m)+R);
-    ll cu=(ll)(((__int128)n*a+b)/m); // must fit ll exactly
+    ll cu=(ll)(((__int128)n*a+b)/m);//Exact integer division; widen node fields too if needed.
     if(!cu)return opow(R,n);
-    ll cnt=n-(ll)(((__int128)m*cu-b-1)/a);
+    ll cnt=n-(ll)(((__int128)m*cu-b-1)/a);//Exact integer division; widen node fields too if needed.
     return opow(R,(m-b-1)/a)+U+work(m,(m-b-1)%a,cu-1,a,R,U)+opow(R,cnt);
 }
 node U,R;
@@ -41,12 +41,11 @@ node U,R;
 // for b>=m, use opow(U,b/m)+work(a,b%m,n,m,U,R) to obtain the result.
 void solve(){
 	U=(node){0,1,0},R=(node){0,0,1};
-    n=d,m=d;ll a=d,b=d;
-    if(n==0){puts("0");return;}--n;
+    n=d-1,m=d;ll a=d,b=d;
     node res=opow(U,b/m)+work(a,b%m,n,m,U,R);//b>=m的时候要线提出几个 U 来用。
     printf("%lld\n",res.s+b/m);
     // out(res.s+b/m);puts("");
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组重建 U、R。work 要求 $a\ge0,0\le b<m$，更大的 b 先提出整段 U。整除中间积用 128 位；若答案大，node 的累加量也改 128 位。
+\paragraph{多测与注意} U、R 每组重建；work 要求 $a\ge0,0\le b<m$。只将整除中间积改 128 位；若结果本身大，node 累加量也要换类型。空求和在 solve 前特判。

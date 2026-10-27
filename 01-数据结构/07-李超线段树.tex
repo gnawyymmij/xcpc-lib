@@ -1,59 +1,103 @@
 \subsection{李超线段树}
-整数横坐标、整数系数的动态李超线段树，求最小值。使用 128 位精确比较，避免浮点误差及空节点的有限 inf 干扰。整条直线插入 $O(\log C)$，线段插入 $O(\log^2 C)$，单点查询 $O(\log C)$。
+平面加线段，查询 $x=x_0$ 相交的最低/高点。
 \begin{lstlisting}
-struct LiChao {
-    using i128=__int128_t;
-    static constexpr int LO=-1000000000,HI=1000000000;
-    static constexpr i128 INF=(i128(1)<<120);
-    struct Line{ll k,b;};
-    struct Node{int l=0,r=0,id=0;};
-    vector<Line> lines;
-    vector<Node> tr;
-    int root=0;
-    LiChao(){clear();}
-    void clear(){lines.assign(1,{0,0});tr.assign(1,{});root=0;}
-    i128 value(int id,int x)const{
-        return id?i128(lines[id].k)*x+lines[id].b:INF;
+//这份代码里，求的是相交的最低点，定义域为 [-1e9,1e9]，为了线段树是对的，整体向右偏移了 1e9。
+const double eps=1e-9;
+const int lim=1000000000;
+const ll inf=0x3f3f3f3f3f3f3f3f;
+int cmp(double x,double y){//比大小，这里求的是是否 x<y。如果要求最高点则这里反向就行。
+    if(x-y>eps)return -1;
+    if(y-x>eps)return 1;
+    return 0;
+}
+struct line{double k,b;};
+line li[400010];int cnt;
+double calc(ll id,double x){//算点值
+    if(id==0)return inf;
+    line l=li[id];
+    return l.k*x+l.b;
+}
+int nd;
+int t[30000010];
+int ls[30000010];
+int rs[30000010];
+void add(double x,double y,double xx,double yy){
+    if(x>xx)swap(x,xx),swap(y,yy);
+    cnt++;
+    if(cmp(x,xx)==0){
+        li[cnt].k=0,li[cnt].b=min(y,yy);//处理斜率不存在，直接退化成一个点。如果求相交最低点就是 min(y,yy)，否则是 max(y,yy)。
+    }else{
+        li[cnt].k=(yy-y)/(xx-x);
+        li[cnt].b=y-li[cnt].k*x;
     }
-    int node(){tr.push_back({});return int(tr.size())-1;}
-    int insert(int p,int l,int r,int id){
-        if(!p)p=node();
-        int mid=l+int((ll(r)-l)/2);
-        if(value(id,mid)<value(tr[p].id,mid))swap(id,tr[p].id);
-        if(l==r||!id)return p;
-        if(value(id,l)<value(tr[p].id,l)){
-            int child=insert(tr[p].l,l,mid,id);tr[p].l=child;
-        }else if(value(id,r)<value(tr[p].id,r)){
-            int child=insert(tr[p].r,mid+1,r,id);tr[p].r=child;
+}
+//加入线段
+void upd(int l,int r,int &p,int id){
+    if(!p){p=++nd;t[p]=id;ls[p]=rs[p]=0;return;}
+    int &oid=t[p],mid=((ll)l+r)>>1;
+    int o=cmp(calc(id,mid-lim),calc(oid,mid-lim));
+    if(o==1)swap(id,oid);
+    if(l==r)return;
+    if(cmp(calc(id,l-lim),calc(oid,l-lim))==1)upd(l,mid,ls[p],id);
+    if(cmp(calc(id,r-lim),calc(oid,r-lim))==1)upd(mid+1,r,rs[p],id);
+    // cout<<l<<" "<<r<<" "<<p<<" "<<t[p]<<endl;
+}
+//因为是线段所以需要找出所有相关区间，这里再找区间
+void ch(int l,int r,int &p,int L,int R,int id){
+    if(!p){p=++nd;t[p]=ls[p]=rs[p]=0;}
+    // cout<<l<<" "<<r<<" "<<p<<endl;
+    if(L<=l&&r<=R){
+        upd(l,r,p,id);
+        return;
+    }int mid=((ll)l+r)>>1;
+    if(mid>=L)ch(l,mid,ls[p],L,R,id);
+    if(mid<R)ch(mid+1,r,rs[p],L,R,id);
+}
+//求相交最低点
+double ask(int l,int r,int p,int x){
+    // cout<<l<<" "<<r<<" "<<p<<" "<<x<<endl;
+    if(!p)return inf;
+    double res=t[p]==0?inf:calc(t[p],x-lim);
+    // cout<<l<<" "<<r<<" "<<p<<" "<<x<<"   "<<t[p]<<" "<<res.x<<" "<<res.id<<endl;
+    if(l==r)return res;
+    int mid=((ll)l+r)>>1;
+    if(mid>=x)res=min(res,ask(l,mid,ls[p],x));
+    else res=min(res,ask(mid+1,r,rs[p],x));
+    return res;
+}
+int n,m,q;
+int rt;
+void solve(){// 模板题处理的是输入 l,r,a,b，表示线段 y=ax+b,x\in [l,r)，通过 add 添加线段，ch进行更新，ask进行查找。
+    rt=nd=cnt=0;
+    n=d;q=d;
+    f(i,1,n){
+        ll l=d,r=d-1,a=d,b=d;
+        ll x=l,xx=r;
+        ll y=l*a+b,yy=r*a+b;
+        add(x,y,xx,yy);
+        // li[++cnt]={a,b};
+        ch(0,2*lim,rt,l+lim,r+lim,cnt);
+    }
+    f(_,1,q){
+        ll op=d;
+        if(op==0){
+            ll l=d,r=d-1,a=d,b=d;
+            ll x=l,xx=r;
+            ll y=l*a+b,yy=r*a+b;
+            add(x,y,xx,yy);
+            // li[++cnt]={a,b};
+            ch(0,2*lim,rt,l+lim,r+lim,cnt);
+        }if(op==1){
+            ll x=d;
+            double res=ask(0,2*lim,rt,x+lim);
+            if(res==inf)puts("INFINITY");
+            else printf("%lld\n",(ll)res);
         }
-        return p;
     }
-    int cover(int p,int l,int r,int L,int R,int id){
-        if(L<=l&&r<=R)return insert(p,l,r,id);
-        if(!p)p=node();
-        int mid=l+int((ll(r)-l)/2);
-        if(L<=mid){int c=cover(tr[p].l,l,mid,L,R,id);tr[p].l=c;}
-        if(R>mid){int c=cover(tr[p].r,mid+1,r,L,R,id);tr[p].r=c;}
-        return p;
-    }
-    void add_segment(int L,int R,ll k,ll b){ // inclusive [L,R]
-        L=max(L,LO);R=min(R,HI);if(L>R)return;
-        lines.push_back({k,b});
-        root=cover(root,LO,HI,L,R,int(lines.size())-1);
-    }
-    i128 query(int x)const{
-        int p=root,l=LO,r=HI;i128 ans=INF;
-        while(p){
-            ans=min(ans,value(tr[p].id,x));if(l==r)break;
-            int mid=l+int((ll(r)-l)/2);
-            if(x<=mid)p=tr[p].l,r=mid;
-            else p=tr[p].r,l=mid+1;
-        }
-        return ans;
-    }
-};
+}
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 clear()。LO、HI 按题目横坐标设；add\_segment 用闭区间，题目给 $[l,r)$ 时传 $[l,r-1]$。无覆盖返回 INF，查询值为 128 位；实数题另用浮点版本。
+\paragraph{多测与注意} 保留浮点、静态节点池和原调用方式。每组重置 rt、nd、cnt，新节点的儿子和标号已清零。定义域按题目改；浮点比较和最后强转整数有精度风险，整数极大值题应改精确求值。
 
 \newpage
+% =============================================

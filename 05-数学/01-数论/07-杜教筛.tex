@@ -10,7 +10,7 @@ bool vis[2000010];
 ll mu[2000010];
 ll ph[2000010];
 void gt(){
-    static bool ready=false;if(ready)return;ready=true;cnt=0;
+    static bool done=0;if(done)return;done=1;cnt=0;
 	mu[1]=ph[1]=1;
 	f(i,2,2000000){
 		if(!vis[i])pr[++cnt]=i,mu[i]=-1,ph[i]=i-1;
@@ -32,7 +32,7 @@ ll Mu(ll n){
 }ll Ph(ll n){
 	if(n<=2000000)return ph[n];
 	if(auto it=sph.find(n);it!=sph.end())return it->second;
-	ll res=(ll)((__int128)n*(n+1)/2);for(ll l=2,r;l<=n;l=r+1){
+	ll res=n*(n+1)/2;for(ll l=2,r;l<=n;l=r+1){
 		r=n/(n/l);res-=(r-l+1)*Ph(n/l);
 	}return sph[n]=res;
 }
@@ -44,4 +44,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 固定筛上限时 gt 一次即可，前缀表和 memo 都可跨组复用；内存紧再清 memo。筛上限按时空权衡调整，别每组重复筛。
+\paragraph{多测与注意} gt 一次，前缀表和 memo 可跨组保留。只修正“缓存值为 0 时重复计算”；筛上限按题目调整。

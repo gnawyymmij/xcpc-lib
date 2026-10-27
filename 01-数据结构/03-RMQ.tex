@@ -9,11 +9,12 @@ ll get(ll l,ll r){
 }
 int main(){
 	n=d,m=d;lg[1]=0;
-    f(i,1,n)s[i][0]=d;
-    f(i,2,n)lg[i]=lg[i/2]+1;
-    f(j,1,lg[n])f(i,1,n-(1LL<<j)+1)
-        s[i][j]=max(s[i][j-1],s[i+(1LL<<(j-1))][j-1]);
+	f(i,1,n)s[i][0]=d;
+	f(j,1,19)f(i,1,n){
+		if(i+(1<<(j-1))>n)s[i][j]=s[i][j-1];
+		else s[i][j]=max(s[i][j-1],s[i+(1<<(j-1))][j-1]);
+	}f(i,2,n)lg[i]=lg[i/2]+1;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 多测重读 s[i][0]、重建到 n，lg[1]=0；无需清整表。数组按题目开，第二维开到 $\log_2 n$。预处理 $O(n\log n)$、查询 $O(1)$；重叠合并需幂等，不能直接用于区间和。
+\paragraph{多测与注意} 按本组 n 重建表即可，不必清整表。数组和第二维按题目开，后者至少覆盖 $\log_2 n$；重叠合并需幂等，不能直接改成区间和。

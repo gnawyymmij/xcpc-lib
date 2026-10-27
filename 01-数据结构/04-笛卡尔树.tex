@@ -2,13 +2,11 @@
 笛卡尔树 (Cartesian Tree)，一种基于键值和权值的二叉树，使用栈 O(n) 线性构建。
 \begin{lstlisting}
 ll a[10000010];
-int l[10000010],r[10000010];
+ll l[10000010],r[10000010];
 long long x,y;
-int st[10000010],tp;
+ll st[10000010],tp;
 int main(){
-	n=d;tp=0;
-    f(i,1,n)l[i]=r[i]=0;
-    if(n==0)return 0;
+	n=d;tp=0;f(i,1,n)l[i]=r[i]=0;
     f(i,1,n)a[i]=d;
 	st[++tp]=1;
 	f(i,2,n){
@@ -18,4 +16,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组清 l[1..n]、r[1..n]、tp，代码已补。根是 st[1]；相等值优先靠前的位置。数组按题目开，结构下标用 int 即可。
+\paragraph{多测与注意} 已在读入后清本组左右儿子和栈顶；根是 st[1]，n 默认非零。结构下标可按题目改 int 省内存。

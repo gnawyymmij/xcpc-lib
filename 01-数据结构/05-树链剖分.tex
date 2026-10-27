@@ -3,10 +3,6 @@
 \begin{lstlisting}
 ll dfn[100010],de[100010],fa[100010],son[100010];
 ll sz[100010],top[100010],rk[100010];
-void init_hld(int nodes){
-    n=nodes;tim=cnt=0;sz[0]=de[0]=0;
-    fill(hd,hd+n+1,0);
-}
 void dfs1(ll u,ll fat){
     fa[u]=fat;de[u]=de[fat]+1;sz[u]=1;son[u]=0;
     for(int i=hd[u];i;i=e[i].nx){
@@ -31,7 +27,7 @@ ll tg[100010<<2];
 void upd(ll p){t[p]=(t[ls(p)]+t[rs(p)])%mod;}
 void build(ll l,ll r,ll p){
     tg[p]=0;
-    if(l==r){t[p]=(a[rk[l]]%mod+mod)%mod;return;}
+    if(l==r){t[p]=a[rk[l]];return;}
     ll mid=l+r>>1;
     build(l,mid,ls(p));
     build(mid+1,r,rs(p));
@@ -61,7 +57,6 @@ void add(ll l,ll r,ll p,ll L,ll R,ll k){
     return res%mod;
 }
 void chad(ll u,ll v,ll k){
-    k=(k%mod+mod)%mod;
     while(top[u]!=top[v]){
         if(de[top[u]]<de[top[v]])swap(u,v);
         add(1,n,1,dfn[top[u]],dfn[u],k);
@@ -71,7 +66,7 @@ void chad(ll u,ll v,ll k){
 }ll chs(ll u,ll v){ll res=0;
     while(top[u]!=top[v]){
         if(de[top[u]]<de[top[v]])swap(u,v);
-        res=(res+get(1,n,1,dfn[top[u]],dfn[u]))%mod;
+        res+=get(1,n,1,dfn[top[u]],dfn[u]);
         u=fa[top[u]];
     }if(dfn[u]>dfn[v])swap(u,v);
     res+=get(1,n,1,dfn[u],dfn[v]);
@@ -79,4 +74,4 @@ void chad(ll u,ll v,ll k){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 init\_hld(n) 后读边，再 dfs1、dfs2、build。dfs1 重置 son，build 重置 lazy。按点权维护；改边权时注意不计 LCA 的位置。
+\paragraph{多测与注意} 每组读边前清 hd、重置边计数，令 tim=0、sz[0]=de[0]=0，再 dfs1、dfs2、build。son 和 lazy 已在各自流程中重置；若有负增量，按题意归一化取模。

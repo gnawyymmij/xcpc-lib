@@ -4,10 +4,9 @@ Knuth-Morris-Pratt 算法，用于在线性时间内进行字符串匹配（在 
 char c[1000010],s[1000010];
 ll nx[1000010];
 int main(){
-	cin>>(c+1)>>(s+1);
+	cin>>c+1>>s+1;
 	n=strlen(c+1),m=strlen(s+1);
-	nx[0]=nx[1]=0;
-    ll j=0;f(i,2,m){
+	nx[1]=0;ll j=0;f(i,2,m){
 		while(j&&s[j+1]!=s[i])j=nx[j];
 		if(s[j+1]==s[i])j++;nx[i]=j;
 	}j=0;f(i,1,n){
@@ -18,4 +17,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 nx[1]=0、j=0，其余当前区间会覆盖。主串和非空模式串重新读入，重叠匹配已处理。
+\paragraph{多测与注意} 每组 nx[1]=0、j=0，其他有效区间覆盖即可；模式串非空。原 C++17 字符数组输入保留。

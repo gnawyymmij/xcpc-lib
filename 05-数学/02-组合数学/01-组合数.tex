@@ -5,7 +5,6 @@ namespace binom{
 	const ll Lim=300010,mod=998244353;
 	ll jc[Lim],inv[Lim],inc[Lim];
 	void pre(){
-        static bool ready=false;if(ready)return;ready=true;
 		jc[0]=jc[1]=inc[0]=inc[1]=inv[0]=inv[1]=1;
 		f(i,2,Lim-1)jc[i]=jc[i-1]*i%mod,inv[i]=(mod-mod/i)*inv[mod%i]%mod,
 		inc[i]=inc[i-1]*inv[i]%mod;
@@ -13,4 +12,4 @@ namespace binom{
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 固定模数下 pre 一次即可，按最大 n 开表。需素数模且阶乘预处理范围小于 mod；大 n 用 Lucas。
+\paragraph{多测与注意} 同模数 pre 一次即可，表按题目开；阶乘预处理范围要小于素数 mod。

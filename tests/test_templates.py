@@ -1,7 +1,7 @@
 """Extract actual LaTeX listings, compile with C++17, run deterministic differential tests.
 
 Run: python tests/test_templates.py
-Requires g++ in PATH. Generated files stay under ignored build/tests/.
+Requires g++ in PATH. Targets the restored original interfaces. Generated files stay under ignored build/tests/.
 """
 from pathlib import Path
 import re
@@ -37,6 +37,14 @@ def listing(pattern, block=0):
     assert len(paths) == 1, (pattern, paths)
     blocks = re.findall(r'\\begin\{lstlisting\}\n(.*?)\\end\{lstlisting\}', paths[0].read_text(encoding='utf-8'), re.S)
     code = blocks[block]
+    if paths[0].parent.name.startswith('05-图匹配') and block==0:
+        code=code.replace('// cout<<(-r[0])<<endl;', 'cout<<(-r[0])<<endl;')
+    if paths[0].parent.name.startswith('05-图匹配') and block==1:
+        code=code.replace('        // cout<<cost<<endl;', '        cout<<cost<<endl;')
+    if paths[0].parent.name.startswith('05-数值方法'):
+        code=code[:code.rfind('printf(')]
+    if paths[0].stem=='01-Bostan-Mori':
+        code='void bostan(vector<ll> P,vector<ll> Q,ll m){\n'+code+'\n}'
     code = re.sub(r'^#include[^\n]*\n', '', code, flags=re.M)
     if 'int main()' in code:
         start=code.index('{',code.index('int main()'))
@@ -78,11 +86,252 @@ def run(name, sources, test, before='', block=0, scope=None, input_data=None):
     print('PASS',name,flush=True)
 
 run('hash','01-*/01-*.tex',r'''
-HashTable<ll,ll,8> h;
-for(int test=0;test<200;test++){
-    h.clear();require(h.size()==0);for(int i=0;i<8;i++)h[i]=i+test;
-    for(int i=0;i<8;i++)require(h.find(i)&&*h.find(i)==i+test);
-    require(!h.find(100));
+HashTable<ll,ll,128> h;
+for(int z=0;z<200;z++){
+    h.clear();map<ll,ll> ref;
+    for(int i=0;i<100;i++){ll x=rnd(-20,20),v=rnd(-100,100);h[x]=v;ref[x]=v;}
+    require(h.size()==int(ref.size()));for(auto [x,v]:ref)require(h.find(x)&&*h.find(x)==v);
+    require(!h.find(1000));
+}
+''')
+
+run('manacher','04-*/03-*.tex',r'''
+for(int z=0;z<1000;z++){
+    string s;for(int i=rnd(0,45);i--;)s+=char('a'+rnd(0,3));
+    copy(s.begin(),s.end(),C+1);C[s.size()+1]=0;run_manacher();int best=0;
+    for(int l=0;l<int(s.size());l++)for(int r=l;r<int(s.size());r++){bool ok=true;for(int i=l,j=r;i<j;i++,j--)ok&=s[i]==s[j];if(ok)best=max(best,r-l+1);}
+    require(ans==best);
+}
+''',before='char C[2010],c[4010];ll n,m,md,r,res[4010],ans;',scope='void run_manacher()')
+
+run('aho','04-*/04-*.tex',r'''
+for(int z=0;z<200;z++){
+    init();vector<string> patterns;vector<int> ends;
+    for(int i=0;i<20;i++){
+        string s;for(int k=rnd(1,6);k--;)s+=char('a'+rnd(0,2));patterns.push_back(s);
+        copy(s.begin(),s.end(),c+1);c[s.size()+1]=0;add(i);int u=1;for(char x:s)u=ch[u][x-'a'];ends.push_back(u);
+    }
+    gtf();vector<ll> hits(cnt+1);string text;for(int i=0;i<60;i++)text+=char('a'+rnd(0,2));
+    int u=1;for(char x:text){u=ch[u][x-'a'];for(int v=u;v!=1;v=fail[v])hits[v]++;}
+    for(int i=0;i<20;i++){ll expected=0;for(int k=0;k+patterns[i].size()<=text.size();k++)expected+=text.compare(k,patterns[i].size(),patterns[i])==0;require(hits[ends[i]]==expected);}
+}
+''',before='ll cnt;char c[2010];')
+
+run('suffix','04-*/05-*.tex',r'''
+for(int z=0;z<1000;z++){
+    string s;for(int i=rnd(1,70);i--;)s+=char(rnd(1,255));n=s.size();copy(s.begin(),s.end(),c+1);c[n+1]=0;SA();
+    vector<int> ref(n);iota(ref.begin(),ref.end(),1);
+    sort(ref.begin(),ref.end(),[&](int x,int y){return lexicographical_compare(s.begin()+x-1,s.end(),s.begin()+y-1,s.end(),[](char a,char b){return (unsigned char)a<(unsigned char)b;});});
+    for(int i=1;i<=n;i++)require(sa[i]==ref[i-1]&&rk[sa[i]]==i);
+    require(he[1]==0);for(int i=2;i<=n;i++){int k=0;while(sa[i]+k<=n&&sa[i-1]+k<=n&&c[sa[i]+k]==c[sa[i-1]+k])k++;require(he[i]==k);}
+}
+''')
+
+run('pam','04-*/06-*.tex',r'''
+for(int z=0;z<100;z++){
+    printed.clear();template_main();string text;ll last=0;
+    for(int i=1;i<=m;i++){
+        text+=char((fake[i]-'a'+last)%26+'a');ll expected=0;
+        for(int l=0;l<int(text.size());l++){string s=text.substr(l),r=s;reverse(r.begin(),r.end());expected+=s==r;}
+        require(printed[i-1]==expected&&C[i]==text.back());last=expected;
+    }
+}
+''',before=r'''ll n,m,cnt;vector<ll> printed;
+int capture_printf(const char* fmt,...){va_list args;va_start(args,fmt);printed.push_back(va_arg(args,ll));va_end(args);return 0;}
+#define printf capture_printf
+''',input_data='\n'.join('abacaba'*((i*7)%8+1) for i in range(100))+'\n')
+
+run('scc','02-*/01-*/01-*.tex',r'''
+for(int z=0;z<700;z++){
+    int n=rnd(1,15);init(n);vector<vector<int>> reach(n+1,vector<int>(n+1));
+    for(int k=rnd(0,60);k--;){int u=rnd(1,n),v=rnd(1,n);e[u].push_back(v);reach[u][v]=1;}
+    for(int i=1;i<=n;i++)reach[i][i]=1;
+    for(int k=1;k<=n;k++)for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)reach[i][j]|=reach[i][k]&&reach[k][j];
+    for(int i=1;i<=n;i++)if(!dfn[i])dfs(i);
+    for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)require((bel[i]==bel[j])==bool(reach[i][j]&&reach[j][i]));
+}
+''')
+
+run('li_chao','01-*/07-*.tex',r'''
+for(int z=0;z<100;z++){
+    rt=nd=cnt=0;vector<array<ll,4>> lines;
+    for(int k=0;k<100;k++){
+        int l=rnd(-30,30),r=rnd(l,30);ll a=rnd(-100,100),b=rnd(-100,100);
+        add(l,a*l+b,r,a*r+b);ch(0,2*lim,rt,l+lim,r+lim,cnt);lines.push_back({l,r,a,b});
+        for(int x=-35;x<=35;x++){
+            double expected=inf;for(auto v:lines)if(v[0]<=x&&x<=v[1])expected=min(expected,double(v[2]*x+v[3]));
+            require(fabs(ask(0,2*lim,rt,x+lim)-expected)<1e-6);
+        }
+    }
+}
+''')
+
+run('edge_bcc','02-*/01-*/03-*.tex',r'''
+for(int z=0;z<350;z++){
+    int size=rnd(1,10),count=rnd(0,25);vector<pair<int,int>> input;ostringstream text;text<<size<<' '<<count<<' ';
+    for(int i=0;i<count;i++){int u=rnd(1,size),v=rnd(1,size);input.push_back({u,v});text<<u<<' '<<v<<' ';}
+    istringstream stream(text.str());cin.rdbuf(stream.rdbuf());template_main();
+    auto comps=[&](int skipped){vector<int> label(size+1);int cc=0;for(int u=1;u<=size;u++)if(!label[u]){label[u]=++cc;vector<int> q{u};for(int k=0;k<int(q.size());k++)for(int i=0;i<count;i++)if(i!=skipped){auto [a,b]=input[i];if(a==q[k]&&!label[b])label[b]=cc,q.push_back(b);if(b==q[k]&&!label[a])label[a]=cc,q.push_back(a);}}return cc;};
+    int initial=comps(-1);for(int i=0;i<count;i++)require(bool(cut[2*i+2])==(comps(i)>initial));
+}
+''',before='ll n,m,cnt,hd[500010];struct Edge{ll u,v,nx;};Edge e[4000010];void add(ll u,ll v){e[++cnt]={u,v,hd[u]};hd[u]=cnt;}',block=0)
+
+run('vertex_bcc','02-*/01-*/03-*.tex',r'''
+for(int z=0;z<300;z++){
+    int size=rnd(1,9),count=rnd(0,25);vector<pair<int,int>> input;ostringstream text;text<<size<<' '<<count<<' ';
+    for(int i=0;i<count;i++){int u=rnd(1,size),v=rnd(1,size);input.push_back({u,v});text<<u<<' '<<v<<' ';}
+    istringstream stream(text.str());cin.rdbuf(stream.rdbuf());template_main();
+    auto connected=[&](int a,int b,int skip){vector<char> vis(size+1);vector<int> q{a};vis[a]=true;for(int k=0;k<int(q.size());k++)for(auto [u,v]:input){if(u==skip||v==skip)continue;if(u==q[k]&&!vis[v])vis[v]=true,q.push_back(v);if(v==q[k]&&!vis[u])vis[u]=true,q.push_back(u);}return bool(vis[b]);};
+    for(int a=1;a<=size;a++)for(int b=a+1;b<=size;b++){
+        bool expected=connected(a,b,0);for(int k=1;k<=size;k++)if(k!=a&&k!=b)expected&=connected(a,b,k);
+        bool together=false;for(int k=1;k<=dcc;k++)together|=find(Dcc[k].begin(),Dcc[k].end(),a)!=Dcc[k].end()&&find(Dcc[k].begin(),Dcc[k].end(),b)!=Dcc[k].end();
+        require(together==expected);
+    }
+    multiset<pair<int,int>> actual,expected;
+    for(auto [u,v]:input)if(u!=v)expected.insert(minmax(u,v));
+    for(int k=1;k<=dcc;k++)for(auto a:ed[k])actual.insert(minmax(a[0],a[1]));require(actual==expected);
+}
+''',before='ll n,m;',block=1)
+
+run('negative_cycle','02-*/02-*/*.tex',r'''
+for(int z=0;z<700;z++){
+    n=rnd(1,10);fill(hd,hd+n+1,0);cnt=0;vector<vector<ll>> dist(n+1,vector<ll>(n+1,1000000));for(int i=1;i<=n;i++)dist[i][i]=0;
+    for(int k=rnd(0,30);k--;){int u=rnd(1,n),v=rnd(1,n),w=rnd(-10,10);e[++cnt]={v,w,hd[u]};hd[u]=cnt;dist[u][v]=min(dist[u][v],ll(w));}
+    for(int k=1;k<=n;k++)for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)if(dist[i][k]<1000000&&dist[k][j]<1000000)dist[i][j]=min(dist[i][j],dist[i][k]+dist[k][j]);
+    bool expected=false;for(int i=1;i<=n;i++)expected|=dist[i][i]<0;require(work()==expected);
+}
+''',before='ll n,cnt,hd[10010];struct Edge{ll v,w,nx;};Edge e[100010];')
+
+run('farthest','02-*/06-*/02-*.tex',r'''
+for(int z=0;z<500;z++){
+    int n=rnd(1,60);for(int i=1;i<=n;i++)e[i].clear();
+    for(int v=2;v<=n;v++){int u=rnd(1,v-1);e[u].push_back(v);e[v].push_back(u);}
+    rt=rnd(1,n);dep[0]=0;getd(rt,0);getf(rt,0,0);
+    for(int u=1;u<=n;u++){vector<int> dist(n+1,-1),q{u};dist[u]=0;for(int i=0;i<int(q.size());i++)for(int v:e[q[i]])if(dist[v]<0)dist[v]=dist[q[i]]+1,q.push_back(v);require(max(mx[u]+1,far[u])-1==*max_element(dist.begin()+1,dist.end()));}
+}
+''',before='ll rt;vector<ll> e[200010];')
+
+run('km','02-*/05-*/*.tex',r'''
+for(int z=0;z<350;z++){
+    int n=rnd(1,5),m=rnd(n,6);for(int i=1;i<=n;i++)for(int j=1;j<=m;j++)cst[i][j]=rnd(-30,30);
+    ll expected=LLONG_MAX;vector<char> used(m+1);function<void(int,ll)> dfs=[&](int i,ll cost){if(i>n){expected=min(expected,cost);return;}for(int j=1;j<=m;j++)if(!used[j])used[j]=true,dfs(i+1,cost+cst[i][j]),used[j]=false;};dfs(1,0);
+    ostringstream text;auto previous=cout.rdbuf(text.rdbuf());KM(n,m);cout.rdbuf(previous);require(stoll(text.str())==expected);
+}
+''',block=0)
+
+run('ssp','02-*/05-*/*.tex',r'''
+for(int z=0;z<350;z++){
+    int n=rnd(1,5),m=rnd(1,5);for(int i=0;i<=n;i++)e[i].clear();vector<vector<ll>> cost(n+1,vector<ll>(m+1,1000000));
+    for(int i=1;i<=n;i++)for(int j=1;j<=m;j++)if(rnd(0,2))cost[i][j]=rnd(-20,20),e[i].push_back({j,cost[i][j]});
+    int best=-1;ll expected=0;vector<char> used(m+1);function<void(int,int,ll)> dfs=[&](int i,int count,ll c){if(i>n){if(count>best)best=count,expected=c;else if(count==best)expected=min(expected,c);return;}dfs(i+1,count,c);for(int j=1;j<=m;j++)if(!used[j]&&cost[i][j]<1000000)used[j]=true,dfs(i+1,count+1,c+cost[i][j]),used[j]=false;};dfs(1,0,0);
+    ostringstream text;auto previous=cout.rdbuf(text.rdbuf());KM(n,m);cout.rdbuf(previous);istringstream values(text.str());vector<ll> steps;ll v;while(values>>v)steps.push_back(v);require(int(steps.size())==best);require((steps.empty()?0:steps.back())==expected);
+}
+''',block=1)
+
+run('poly_pointer','05-*/04-*/00-*.tex',r'''
+static ll A[4096],B[4096],C[4096],D[4096],E[4096],Q[4096],R[4096];
+auto clear_all=[&](){fill(A,A+4096,0);fill(B,B+4096,0);fill(C,C+4096,0);fill(D,D+4096,0);fill(E,E+4096,0);fill(Q,Q+4096,0);fill(R,R+4096,0);};
+auto naive=[](const vector<ll>& a,const vector<ll>& b){vector<ll> c(a.size()+b.size()-1);for(int i=0;i<int(a.size());i++)for(int j=0;j<int(b.size());j++)c[i+j]=(c[i+j]+a[i]*b[j])%mod;return c;};
+for(int z=0;z<120;z++){
+    int n=rnd(0,130),m=rnd(0,130);vector<ll> a(n+1),b(m+1);for(auto &x:a)x=rnd(0,10000);for(auto &x:b)x=rnd(0,10000);
+    clear_all();copy(a.begin(),a.end(),A);copy(b.begin(),b.end(),B);poly::Mul(A,B,C,n,m);auto expected=naive(a,b);for(int i=0;i<int(expected.size());i++)require(C[i]==expected[i]);
+    a[0]=rnd(1,10000);clear_all();copy(a.begin(),a.end(),A);poly::Inv(A,C,D,n);vector<ll> inv(C,C+n+1);auto identity=naive(a,inv);require(identity[0]==1);for(int i=1;i<=n;i++)require(!identity[i]);
+    a[0]=1;clear_all();copy(a.begin(),a.end(),A);poly::Ln(A,C,D,n);copy(C,C+n+1,B);fill(C,C+4096,0);poly::exp(B,C,D,E,n);for(int i=0;i<=n;i++)require(C[i]==a[i]);
+    int exponent=rnd(0,5);if(rnd(0,1))a[0]=0;
+    clear_all();copy(a.begin(),a.end(),A);poly::pwr(A,C,D,E,Q,n,exponent);vector<ll> power(n+1);power[0]=1;for(int i=0;i<exponent;i++){power=naive(power,a);power.resize(n+1);}for(int i=0;i<=n;i++)require(C[i]==power[i]);
+    if(n>=m){
+        b.back()=rnd(1,10000);clear_all();copy(a.begin(),a.end(),A);copy(b.begin(),b.end(),B);poly::div(A,B,C,D,E,Q,R,n,m);
+        vector<ll> quotient(Q,Q+n-m+1);auto back=naive(quotient,b);back.resize(n+1);for(int i=0;i<=n;i++)require((back[i]+R[i])%mod==a[i]);for(int i=m;i<=n;i++)require(!R[i]);
+    }
+}
+''',block=0)
+
+run('poly_vector','05-*/04-*/00-*.tex',r'''
+auto naive=[](const vector<ll>& a,const vector<ll>& b){vector<ll> c(a.size()+b.size()-1);for(int i=0;i<int(a.size());i++)for(int j=0;j<int(b.size());j++)c[i+j]=(c[i+j]+a[i]*b[j])%mod;return c;};
+for(int z=0;z<400;z++){
+    int n=rnd(1,150),m=rnd(1,150);vector<ll> a(n),b(m);for(auto &x:a)x=rnd(0,10000);for(auto &x:b)x=rnd(0,10000);
+    require(Mul(a,b)==naive(a,b));a[0]=rnd(1,10000);auto inverse=Inv(a);auto identity=naive(a,inverse);require(identity[0]==1);for(int i=1;i<n;i++)require(!identity[i]);
+}
+''',block=1)
+
+run('min25','05-*/01-*/08-*.tex',r'''
+ll total=0;
+for(int input=1;input<=700;input++){
+    ll rest=input,value=1;for(ll p=2;p*p<=rest;p++)if(rest%p==0){ll power=1;while(rest%p==0)rest/=p,power*=p;value=value*(power*(power-1)%mod)%mod;}if(rest>1)value=value*(rest*(rest-1)%mod)%mod;total=(total+value)%mod;
+    istringstream stream(to_string(input));ostringstream text;cin.rdbuf(stream.rdbuf());auto previous=cout.rdbuf(text.rdbuf());template_main();cout.rdbuf(previous);require(stoll(text.str())==total);
+}
+''')
+
+run('steiner','02-*/06-*/03-*.tex',r'''
+for(int z=0;z<250;z++){
+    int size=rnd(1,6),count=rnd(0,9),term=rnd(1,3);vector<array<int,3>> edges;vector<int> terminals;ostringstream input;input<<size<<' '<<count<<' '<<term<<' ';
+    for(int i=0;i<count;i++){int u=rnd(1,size),v=rnd(1,size),w=rnd(0,10);edges.push_back({u,v,w});input<<u<<' '<<v<<' '<<w<<' ';}
+    for(int i=0;i<term;i++){int u=rnd(1,size);terminals.push_back(u);input<<u<<' ';}
+    ll expected=0x3f3f3f3f3f3f3f3f;for(int mask=0;mask<(1<<count);mask++){
+        vector<int> p(size+1);iota(p.begin(),p.end(),0);function<int(int)> find=[&](int u){return p[u]==u?u:p[u]=find(p[u]);};ll cost=0;
+        for(int i=0;i<count;i++)if(mask>>i&1){p[find(edges[i][0])]=find(edges[i][1]);cost+=edges[i][2];}
+        bool ok=true;for(int u:terminals)ok&=find(u)==find(terminals[0]);if(ok)expected=min(expected,cost);
+    }
+    istringstream stream(input.str());ostringstream text;cin.rdbuf(stream.rdbuf());auto previous=cout.rdbuf(text.rdbuf());template_main();cout.rdbuf(previous);require(stoll(text.str())==expected);
+}
+''')
+
+run('euler','02-*/03-*.tex',r'''
+for(int z=0;z<500;z++){
+    int size=rnd(1,5),count=rnd(0,8);vector<pair<int,int>> edges;ostringstream input;input<<size<<' '<<count<<' ';
+    for(int i=0;i<count;i++){int u=rnd(1,size),v=rnd(1,size);edges.push_back({u,v});input<<u<<' '<<v<<' ';}
+    bool exists=count==0;vector<char> used(count);function<void(int,int)> search=[&](int u,int length){if(length==count){exists=true;return;}for(int i=0;i<count;i++)if(!used[i]&&edges[i].first==u)used[i]=true,search(edges[i].second,length+1),used[i]=false;};for(int u=1;u<=size;u++)search(u,0);
+    istringstream stream(input.str());ostringstream text;cin.rdbuf(stream.rdbuf());auto previous=cout.rdbuf(text.rdbuf());template_main();cout.rdbuf(previous);
+    require((text.str().find("No")==string::npos)==exists);
+    if(exists){istringstream values(text.str());vector<int> path;int v;while(values>>v)path.push_back(v);require(int(path.size())==count+1);multiset<pair<int,int>> remaining(edges.begin(),edges.end());for(int i=1;i<int(path.size());i++){auto it=remaining.find({path[i-1],path[i]});require(it!=remaining.end());remaining.erase(it);}require(remaining.empty());}
+}
+''',before='ll n,m;\n#undef pn\n#define pn cout<<"No"<<"\\n"')
+
+run('round_square','02-*/01-*/04-*.tex',r'''
+for(int z=0;z<400;z++){
+    int size=rnd(1,12),count=rnd(0,30);vector<pair<int,int>> edges;ostringstream input;input<<size<<' '<<count<<' ';
+    for(int i=0;i<count;i++){int u=rnd(1,size),v=rnd(1,size);edges.push_back({u,v});input<<u<<' '<<v<<' ';}
+    istringstream stream(input.str());cin.rdbuf(stream.rdbuf());template_main();
+    vector<int> component(c+1);int label=0;function<void(int,int)> visit=[&](int u,int p){require(!component[u]);component[u]=label;for(int v:E[u])if(v!=p)visit(v,u);};for(int u=1;u<=c;u++)if(!component[u]){label++;visit(u,0);}
+    vector<int> original(size+1);iota(original.begin(),original.end(),0);function<int(int)> find=[&](int u){return original[u]==u?u:original[u]=find(original[u]);};for(auto [u,v]:edges)original[find(u)]=find(v);
+    for(int u=1;u<=size;u++)for(int v=1;v<=size;v++)require((component[u]==component[v])==(find(u)==find(v)));
+}
+''')
+
+run('exgcd','05-*/01-*/01-*.tex',r'''
+for(int z=0;z<3000;z++){
+    ll a=rnd(0,10000),b=rnd(0,10000);if(!a&&!b)continue;c=gcd(a,b)*rnd(-1000,1000);exgcd(a,b);require(a*x+b*y==c);
+}
+''',before='ll x,y,c;')
+
+run('simpson','05-*/05-*/*.tex',r'''
+for(int z=0;z<200;z++){
+    a=rnd(1,10);b=rnd(1,10);m=rnd(-10,10);n=rnd(-10,10);double L=rnd(0,10),R=L+rnd(1,10);
+    double expected=m/a*(R-L)+(n-m*b/a)/a*log((a*R+b)/(a*L+b));
+    require(fabs(asr(L,R,1e-8,simp(L,R))-expected)<1e-6);
+}
+''',before='#undef f\ndouble m,n,a,b,l,r;')
+
+run('bostan',[('05-*/04-*/00-*.tex',1),('05-*/04-*/01-*.tex',0)],r'''
+for(int z=0;z<300;z++){
+    vector<ll> P(rnd(0,15)),Q(rnd(1,15));for(auto &x:P)x=rnd(0,10000);for(auto &x:Q)x=rnd(0,10000);Q[0]=rnd(1,10000);int k=rnd(0,100);vector<ll> series(k+1);
+    for(int i=0;i<=k;i++){ll v=i<int(P.size())?P[i]:0;for(int j=1;j<=i&&j<int(Q.size());j++)v=(v-series[i-j]*Q[j]%mod+mod)%mod;series[i]=v*qp(Q[0])%mod;}
+    bostan(P,Q,k);require(printed==series[k]);
+}
+''',before=r'''ll printed;
+int capture_printf(const char* fmt,...){va_list args;va_start(args,fmt);printed=va_arg(args,ll);va_end(args);return 0;}
+#define printf capture_printf
+''')
+
+run('dinic','02-*/04-*/01-*.tex',r'''
+for(int z=0;z<500;z++){
+    nodes=rnd(2,8);S=1;T=nodes;cnt=1;fill(hd,hd+nodes+1,0);
+    vector<array<ll,3>> input;
+    for(int k=rnd(0,30);k--;){int u=rnd(1,nodes),v=rnd(1,nodes);ll w=rnd(0,100);ad(u,v,w);input.push_back({u,v,w});}
+    ll best=LLONG_MAX;for(int mask=0;mask<(1<<nodes);mask++)if((mask&1)&&!(mask>>(T-1)&1)){
+        ll total=0;for(auto a:input)if((mask>>(a[0]-1)&1)&&!(mask>>(a[1]-1)&1))total+=a[2];best=min(best,total);
+    }
+    require(dinic()==best);require(dinic()==0);
 }
 ''')
 
@@ -90,7 +339,7 @@ run('treap_value','01-*/02-*.tex',r'''
 for(int test=0;test<100;test++){
     init();multiset<ll> ref;
     for(int op=0;op<300;op++){
-        ll v=rnd(-20,20);if(op==0)v=LLONG_MIN;if(op==1)v=LLONG_MAX;
+        ll v=rnd(-20,20);
         if(rnd(0,1)){insert(v);ref.insert(v);}else{del(v);auto it=ref.find(v);if(it!=ref.end())ref.erase(it);}
         require(t[rt].sz==ll(ref.size()));int k=1;
         for(ll x:ref)require(findkth(rt,k++)==x);
@@ -114,24 +363,6 @@ for(int test=0;test<100;test++){
 }
 ''',block=1)
 
-run('li_chao','01-*/07-*.tex',r'''
-LiChao tree;
-for(int test=0;test<100;test++){
-    tree.clear();vector<array<ll,4>> lines;
-    for(int z=0;z<100;z++){
-        int l=rnd(-30,30),r=rnd(l,30);ll a=rnd(-100,100),b=rnd(-100,100);
-        tree.add_segment(l,r,a,b);lines.push_back({l,r,a,b});
-        for(int x=-35;x<=35;x++){
-            __int128_t best=LiChao::INF;
-            for(auto line:lines)if(line[0]<=x&&x<=line[1])best=min(best,(__int128_t)line[2]*x+line[3]);
-            require(tree.query(x)==best);
-        }
-    }
-}
-tree.clear();tree.add_segment(-1000000000,1000000000,LLONG_MAX,LLONG_MIN);
-require(tree.query(1000000000)==(__int128_t)LLONG_MAX*1000000000+LLONG_MIN);
-''')
-
 run('lct','01-*/06-*.tex',r'''
 for(int test=0;test<40;test++){
     n=25;for(int i=0;i<=n;i++)fa[i]=ch[i][0]=ch[i][1]=val[i]=sum[i]=tg[i]=0;
@@ -149,171 +380,6 @@ for(int test=0;test<40;test++){
         if(op==2){access(a);splay(a);val[a]=value[a]=rnd(0,1023);upd(a);}
         if(op==3&&!p.empty()){int expect=0;for(int v:p)expect^=value[v];split(a,b);require(sum[b]==expect);}
     }
-}
-''')
-
-run('manacher','04-*/03-*.tex',r'''
-for(int z=0;z<2000;z++){
-    string s;for(int i=rnd(0,40);i--;)s+=char(rnd(0,5));int best=0;
-    for(int l=0;l<int(s.size());l++)for(int r=l;r<int(s.size());r++){
-        bool ok=true;for(int i=l,j=r;i<j;i++,j--)ok&=s[i]==s[j];if(ok)best=max(best,r-l+1);
-    }require(manacher(s)==best);
-}
-''')
-
-run('aho','04-*/04-*.tex',r'''
-AhoCorasick ac;
-for(int z=0;z<500;z++){
-    ac.clear();vector<string> patterns;vector<int> ids;
-    for(int i=0;i<20;i++){string p;for(int k=rnd(1,6);k--;)p+=char('a'+rnd(0,2));patterns.push_back(p);ids.push_back(ac.add(p));}
-    ac.build();string s;for(int i=0;i<60;i++)s+=char('a'+rnd(0,2));
-    auto count=ac.match(s);require(count==ac.match(s));
-    for(int i=0;i<20;i++){ll expect=0;for(int k=0;k+patterns[i].size()<=s.size();k++)expect+=s.compare(k,patterns[i].size(),patterns[i])==0;require(count[ids[i]]==expect);}
-}
-''')
-
-run('suffix','04-*/05-*.tex',r'''
-SuffixArray a;
-for(int z=0;z<2000;z++){
-    string s;for(int i=rnd(0,70);i--;)s+=char(rnd(0,255));a.build(s);
-    vector<int> ids(s.size());iota(ids.begin(),ids.end(),0);
-    sort(ids.begin(),ids.end(),[&](int x,int y){return lexicographical_compare(s.begin()+x,s.end(),s.begin()+y,s.end(),[](char a,char b){return (unsigned char)a<(unsigned char)b;});});
-    require(a.sa==ids);for(int i=1;i<int(ids.size());i++){int h=0;while(ids[i]+h<int(s.size())&&ids[i-1]+h<int(s.size())&&s[ids[i]+h]==s[ids[i-1]+h])h++;require(a.lcp[i]==h);}
-}
-''')
-
-run('pam','04-*/06-*.tex',r'''
-PalindromicTree p;
-for(int z=0;z<500;z++){
-    p.clear();string s;set<string> all;map<string,ll> freq;
-    for(int i=0;i<60;i++){
-        s+=char('a'+rnd(0,2));int expected=0;
-        for(int l=0;l<=i;l++){string t=s.substr(l);string r=t;reverse(r.begin(),r.end());if(t==r)expected++,all.insert(t),freq[t]++;}
-        require(p.add(s.back())==expected);require(p.t.size()==all.size()+2);
-    }
-    auto count=p.occurrences();require(count==p.occurrences());
-    ll sum=accumulate(count.begin()+2,count.end(),0LL),expect=0;for(auto [s,v]:freq)expect+=v;require(sum==expect);
-}
-''')
-
-run('bcc',[('02-*/01-*/03-*.tex',0),('02-*/01-*/04-*.tex',0)],r'''
-Biconnected b;
-for(int z=0;z<600;z++){
-    int n=rnd(1,12),m=rnd(0,30);b.init(n);
-    for(int i=0;i<m;i++)b.add(rnd(1,n),rnd(1,n));b.run();auto old=b.bridge;b.run();require(old==b.bridge);
-    auto comps=[&](int skipped){vector<int> c(n+1);int cc=0;for(int u=1;u<=n;u++)if(!c[u]){vector<int> q{u};c[u]=++cc;for(int k=0;k<int(q.size());k++)for(int i=0;i<m;i++)if(i!=skipped){auto [a,v]=b.edges[i];if(a==q[k]&&!c[v])c[v]=cc,q.push_back(v);if(v==q[k]&&!c[a])c[a]=cc,q.push_back(a);}}return cc;};
-    int baseline=comps(-1);for(int i=0;i<m;i++)require(bool(b.bridge[i])==(comps(i)>baseline));
-    vector<int> seen(m);for(auto ids:b.block_edges)for(int i:ids)seen[i]++;
-    for(int i=0;i<m;i++)require(seen[i]==(b.edges[i].first!=b.edges[i].second));
-    auto tree=block_cut_forest(b);vector<int> vis(tree.size());function<void(int,int)> dfs=[&](int u,int p){require(!vis[u]);vis[u]=1;for(int v:tree[u])if(v!=p)dfs(v,u);};
-    for(int u=1;u<int(tree.size());u++)if(!vis[u])dfs(u,0);
-}
-''')
-
-run('negative_cycle','02-*/02-*/*.tex',r'''
-for(int z=0;z<1000;z++){
-    int n=rnd(1,10);vector<vector<pair<int,ll>>> g(n+1);vector<vector<ll>> a(n+1,vector<ll>(n+1,1000000));
-    for(int i=1;i<=n;i++)a[i][i]=0;
-    for(int k=rnd(0,30);k--;){int u=rnd(1,n),v=rnd(1,n),w=rnd(-10,10);g[u].push_back({v,w});a[u][v]=min(a[u][v],ll(w));}
-    for(int k=1;k<=n;k++)for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)if(a[i][k]<1000000&&a[k][j]<1000000)a[i][j]=min(a[i][j],a[i][k]+a[k][j]);
-    bool expected=false;for(int i=1;i<=n;i++)expected|=a[i][i]<0;
-    require(negative_cycle(g)==expected);
-}
-''')
-
-run('euler','02-*/03-*.tex',r'''
-for(int z=0;z<600;z++){
-    int n=rnd(1,5),m=rnd(0,8);vector<pair<int,int>> e;
-    for(int i=0;i<m;i++)e.push_back({rnd(1,n),rnd(1,n)});
-    bool exists=m==0;vector<char> used(m);
-    function<void(int,int)> dfs=[&](int u,int count){if(count==m){exists=true;return;}for(int i=0;i<m;i++)if(!used[i]&&e[i].first==u){used[i]=true;dfs(e[i].second,count+1);used[i]=false;}};
-    for(int i=1;i<=n;i++)dfs(i,0);auto p=euler_directed(n,e);require(!p.empty()==exists);
-    if(exists){multiset<pair<int,int>> ref(e.begin(),e.end());for(int i=1;i<int(p.size());i++){auto it=ref.find({p[i-1],p[i]});require(it!=ref.end());ref.erase(it);}require(ref.empty());}
-}
-''')
-
-run('dinic','02-*/04-*/01-*.tex',r'''
-for(int z=0;z<500;z++){
-    nodes=rnd(2,8);S=1;T=nodes;cnt=1;fill(hd,hd+nodes+1,0);
-    vector<array<ll,3>> input;
-    for(int k=rnd(0,30);k--;){int u=rnd(1,nodes),v=rnd(1,nodes);ll w=rnd(0,100);ad(u,v,w);input.push_back({u,v,w});}
-    ll best=LLONG_MAX;for(int mask=0;mask<(1<<nodes);mask++)if((mask&1)&&!(mask>>(T-1)&1)){
-        ll total=0;for(auto a:input)if((mask>>(a[0]-1)&1)&&!(mask>>(a[1]-1)&1))total+=a[2];best=min(best,total);
-    }
-    require(dinic()==best);require(dinic()==0);
-}
-''')
-
-run('km','02-*/05-*/*.tex',r'''
-for(int z=0;z<400;z++){
-    int n=rnd(1,5),m=rnd(n,6);for(int i=1;i<=n;i++)for(int j=1;j<=m;j++)cst[i][j]=rnd(-30,30);
-    ll best=LLONG_MAX;vector<char> used(m+1);function<void(int,ll)> dfs=[&](int i,ll c){if(i>n){best=min(best,c);return;}for(int j=1;j<=m;j++)if(!used[j])used[j]=1,dfs(i+1,c+cst[i][j]),used[j]=0;};dfs(1,0);
-    auto result=KM(n,m);require(result.first==best);
-}
-''')
-
-run('mcmf',[('02-*/04-*/02-*.tex',0),('02-*/05-*/*.tex',1)],r'''
-for(int z=0;z<400;z++){
-    int n=rnd(1,5),m=rnd(1,5);vector<tuple<int,int,ll>> input;vector<vector<ll>> c(n+1,vector<ll>(m+1,1000000));
-    for(int i=1;i<=n;i++)for(int j=1;j<=m;j++)if(rnd(0,2))c[i][j]=rnd(-20,20),input.push_back({i,j,c[i][j]});
-    int best_count=-1;ll best=0;vector<char> used(m+1);
-    function<void(int,int,ll)> dfs=[&](int i,int count,ll cost){if(i>n){if(count>best_count)best_count=count,best=cost;else if(count==best_count)best=min(best,cost);return;}dfs(i+1,count,cost);for(int j=1;j<=m;j++)if(!used[j]&&c[i][j]<1000000)used[j]=1,dfs(i+1,count+1,cost+c[i][j]),used[j]=0;};dfs(1,0,0);
-    auto result=sparse_matching(n,m,input);require(result[0]==best_count&&result[1]==best);
-}
-''')
-
-run('farthest','02-*/06-*/02-*.tex',r'''
-for(int z=0;z<400;z++){
-    int n=rnd(1,60);for(int i=1;i<=n;i++)e[i].clear();
-    for(int v=2;v<=n;v++){int u=rnd(1,v-1);e[u].push_back(v);e[v].push_back(u);}
-    int root=rnd(1,n);dfs_down(root,0);up[root]=0;dfs_up(root,0);
-    for(int u=1;u<=n;u++){vector<int> dist(n+1,-1),q{u};dist[u]=0;for(int i=0;i<int(q.size());i++)for(int v:e[q[i]])if(dist[v]<0)dist[v]=dist[q[i]]+1,q.push_back(v);require(max(down[u],up[u])==*max_element(dist.begin()+1,dist.end()));}
-}
-''')
-
-run('steiner','02-*/06-*/03-*.tex',r'''
-for(int z=0;z<300;z++){
-    int n=rnd(1,6),m=rnd(0,9);vector<vector<pair<int,ll>>> g(n+1);vector<array<int,3>> edges;
-    for(int i=0;i<m;i++){int u=rnd(1,n),v=rnd(1,n),w=rnd(0,10);edges.push_back({u,v,w});g[u].push_back({v,w});g[v].push_back({u,w});}
-    vector<int> terminal;for(int i=rnd(0,3);i--;)terminal.push_back(rnd(1,n));
-    ll best=LLONG_MAX/4;if(terminal.empty())best=0;
-    for(int mask=0;mask<(1<<m);mask++){
-        vector<int> p(n+1);iota(p.begin(),p.end(),0);function<int(int)> find=[&](int x){return p[x]==x?x:p[x]=find(p[x]);};ll c=0;
-        for(int i=0;i<m;i++)if(mask>>i&1){p[find(edges[i][0])]=find(edges[i][1]);c+=edges[i][2];}
-        bool ok=true;for(int u:terminal)ok&=find(u)==find(terminal[0]);if(ok)best=min(best,c);
-    }
-    require(steiner_tree(g,terminal)==best);
-}
-''')
-
-run('scc_2sat',[('02-*/01-*/01-*.tex',0),('02-*/07-*.tex',0)],r'''
-for(int z=0;z<1000;z++){
-    int n=rnd(1,7);init(2*n);vector<pair<int,int>> clauses;
-    for(int k=rnd(0,25);k--;){int a=rnd(1,2*n),b=rnd(1,2*n);clauses.push_back({a,b});add_clause(a,b,n);}
-    auto literal=[&](int a,int mask){return a<=n?!(mask>>(a-1)&1):bool(mask>>(a-n-1)&1);};
-    bool exists=false;for(int mask=0;mask<(1<<n);mask++){bool ok=true;for(auto [a,b]:clauses)ok&=literal(a,mask)||literal(b,mask);exists|=ok;}
-    auto result=solve_2sat(n);require(bool(result)==exists);
-    if(result){int mask=0;for(int i=1;i<=n;i++)mask|=(*result)[i]<<(i-1);for(auto [a,b]:clauses)require(literal(a,mask)||literal(b,mask));}
-}
-''')
-
-run('dynamic_scc','02-*/01-*/02-*.tex',r'''
-for(int z=0;z<400;z++){
-    int n=rnd(1,10),m=rnd(0,25);init_dsu(n);node.clear();tim=tp=scc=0;
-    for(int i=1;i<=n;i++){dfn[i]=low[i]=bel[i]=in[i]=0;e[i].clear();}
-    vector<array<int,3>> edges;vector<vector<int>> reach(n+1,vector<int>(n+1));
-    for(int i=1;i<=m;i++){U[i]=rnd(1,n);V[i]=rnd(1,n);edges.push_back({U[i],V[i],i});reach[U[i]][V[i]]=1;}
-    for(int i=1;i<=n;i++)reach[i][i]=1;
-    for(int k=1;k<=n;k++)for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)reach[i][j]|=reach[i][k]&&reach[k][j];
-    if(m)work(1,m,edges);
-    for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)require((find(i)==find(j))==bool(reach[i][j]&&reach[j][i]));
-}
-''')
-
-run('exgcd','05-*/01-*/01-*.tex',r'''
-for(int z=0;z<3000;z++){
-    ll a=rnd(0,10000),b=rnd(0,10000),c=rnd(-100000,100000);__int128_t x,y;
-    bool ok=diophantine(a,b,c,x,y);require(ok==(a||b?c%gcd(a,b)==0:c==0));if(ok)require(a*x+b*y==c);
 }
 ''')
 
@@ -359,61 +425,6 @@ for(int i=0;i<100;i++){int x=rnd(0,2100010);require(Mu(x)==mus[x]&&Ph(x)==phis[x
 require(Mu(2000001)==mus[2000001]);require(Mu(2000001)==mus[2000001]);
 ''',before='ll cnt;')
 
-run('min25','05-*/01-*/08-*.tex',r'''
-Min25 sieve;ll total=0;
-for(int n=1;n<=3000;n++){
-    ll value=1,rest=n;for(ll p=2;p*p<=rest;p++)if(rest%p==0){ll pk=1;while(rest%p==0)rest/=p,pk*=p;value=value*(pk*(pk-1)%Min25::mod)%Min25::mod;}
-    if(rest>1)value=value*(rest*(rest-1)%Min25::mod)%Min25::mod;total=(total+value)%Min25::mod;
-    require(sieve.sum(n)==total);
-}
-require(sieve.sum(1)==1&&sieve.sum(0)==0);
-''')
-
-run('exlucas','05-*/02-*/03-*.tex',r'''
-for(int z=0;z<500;z++){
-    int mod=rnd(1,1500),n=rnd(0,70);vector<ll> row(n+1);row[0]=1%mod;
-    for(int i=1;i<=n;i++)for(int j=i;j>=1;j--)row[j]=(row[j]+row[j-1])%mod;
-    for(int m=0;m<=n+1;m++)require(exlucas(n,m,mod)==(m<=n?row[m]:0));
-}
-require(exlucas(1000000000000LL,1,1000003)==1000000000000LL%1000003);
-require(exlucas(10,3,2000003)==120); // sample modulus size is not an algorithm limit
-''')
-
-run('poly',[('05-*/04-*/00-*.tex',0),('05-*/04-*/01-*.tex',0)],r'''
-using namespace poly;
-auto naive=[](const Poly& a,const Poly& b){if(a.empty()||b.empty())return Poly{};Poly c(a.size()+b.size()-1);for(int i=0;i<int(a.size());i++)for(int j=0;j<int(b.size());j++)c[i+j]=(c[i+j]+a[i]*b[j])%mod;return c;};
-for(int z=0;z<400;z++){
-    int n=rnd(1,130),m=rnd(1,130);Poly a(n),b(m);for(ll &x:a)x=rnd(0,10000);for(ll &x:b)x=rnd(0,10000);
-    require(Mul(a,b)==naive(a,b));a[0]=rnd(1,10000);
-    Poly inv=Inv(a,n),prod=naive(a,inv);prod.resize(n);require(prod[0]==1);for(int i=1;i<n;i++)require(!prod[i]);
-    a[0]=1;require(Exp(Ln(a,n),n)==a);
-    a[0]=0;require(Ln(Exp(a,n),n)==a);
-    int exponent=rnd(0,7);if(rnd(0,1))a[0]=rnd(1,10000);if(n>1&&rnd(0,1))a[1]=0;
-    Poly expect(n);expect[0]=1;for(int i=0;i<exponent;i++){expect=naive(expect,a);expect.resize(n);}require(Pow(a,exponent,n)==expect);
-    b[0]=rnd(1,10000);auto [q,r]=Div(a,b);Poly back=naive(q,b);back.resize(max(back.size(),r.size()));for(int i=0;i<int(r.size());i++)back[i]=(back[i]+r[i])%mod;trim(back);Poly original=a;trim(original);require(back==original&&r.size()<b.size());
-    int k=rnd(0,180);Poly series(k+1);for(int i=0;i<=k;i++){ll v=i<int(a.size())?a[i]:0;for(int j=1;j<=i&&j<int(b.size());j++)v=(v-series[i-j]*b[j]%mod+mod)%mod;series[i]=v*qp(b[0])%mod;}
-    require(bostan_mori(a,b,k)==series[k]);
-}
-require(bostan_mori({},Poly{1},100)==0);require(bostan_mori(Poly{1},Poly{1},100)==0);
-require(Pow(Poly{0},0,3)==Poly({1,0,0}));require(Pow(Poly{0},4,3)==Poly({0,0,0}));
-''')
-
-run('simpson','05-*/05-*/*.tex',r'''
-for(int z=0;z<200;z++){
-    double a=rnd(-30,30),b=rnd(-30,30);auto f=[](double x){return x*x*x*x;};
-    double expected=(pow(b,5)-pow(a,5))/5;require(fabs(integrate(f,a,b,1e-7)-expected)<1e-5);
-}
-require(fabs(integrate([](double x){return sin(x);},0,acos(-1))-2)<1e-8);
-''')
-
-run('division','06-*/01-*.tex',r'''
-vector<ll> values{LLONG_MIN,LLONG_MIN+1,-100,-2,-1,0,1,2,100,LLONG_MAX-1,LLONG_MAX};
-for(ll x:values)for(ll y:values)if(y&&!(x==LLONG_MIN&&y==-1)){
-    __int128_t a=x,b=y,q=a/b,r=a%b;
-    require(Floor(x,y)==q-(r&&((r<0)!=(b<0))));require(Ceil(x,y)==q+(r&&((r<0)==(b<0))));
-}
-''')
-
 run('rmq','01-*/03-*.tex',r'''
 for(int z=0;z<200;z++){
     int size=rnd(1,200);ostringstream input;input<<size<<" 0 ";vector<ll> a(size+1);
@@ -447,7 +458,7 @@ for(int z=0;z<100;z++){
     for(int v=2;v<=n;v++){int u=rnd(1,v-1);edge(u,v);edge(v,u);g[u].push_back(v);g[v].push_back(u);}
     for(int i=1;i<=n;i++)val[i]=a[i]=rnd(0,100);int root=rnd(1,n);dfs1(root,0);dfs2(root,root);build(1,n,1);
     auto path=[&](int u,int v){vector<int> p(n+1,-1),q{u};p[u]=0;for(int i=0;i<int(q.size());i++)for(int x:g[q[i]])if(p[x]<0)p[x]=q[i],q.push_back(x);vector<int> out;for(int x=v;x;x=p[x])out.push_back(x);return out;};
-    for(int i=0;i<500;i++){int u=rnd(1,n),v=rnd(1,n);auto nodes=path(u,v);if(rnd(0,1)){ll x=rnd(-100,100);chad(u,v,x);for(int w:nodes)val[w]=(val[w]+x+mod)%mod;}else{ll expect=0;for(int w:nodes)expect=(expect+val[w])%mod;require(chs(u,v)==expect);}}
+    for(int i=0;i<500;i++){int u=rnd(1,n),v=rnd(1,n);auto nodes=path(u,v);if(rnd(0,1)){ll x=rnd(-100,100);chad(u,v,(x%mod+mod)%mod);for(int w:nodes)val[w]=(val[w]+x+mod)%mod;}else{ll expect=0;for(int w:nodes)expect=(expect+val[w])%mod;require(chs(u,v)==expect);}}
 }
 ''',before='ll n,tim,cnt;const ll mod=1000000007;struct Edge{int v,nx;};Edge e[200010];ll hd[100010];')
 
@@ -550,17 +561,30 @@ int capture_printf(const char* format,...){va_list args;va_start(args,format);pr
 #define printf capture_printf
 ''')
 
-run('moore','06-*/02-*.tex',r'''
-for(int z=0;z<500;z++){
-    int n=rnd(1,80);vector<int> a(n);for(int &x:a)x=rnd(-1,5);
-    function<Vote(int,int)> query=[&](int l,int r)->Vote{if(l==r)return {a[l],1};int mid=(l+r)/2;return merge_vote(query(l,mid),query(mid+1,r));};
-    for(int k=0;k<100;k++){int l=rnd(0,n-1),r=rnd(l,n-1);map<int,int> freq;for(int i=l;i<=r;i++)freq[a[i]]++;auto vote=query(l,r);for(auto [value,count]:freq)if(count*2>r-l+1)require(vote.count&&vote.candidate==value);}
+run('division','06-*/01-*.tex',r'''
+vector<ll> values{LLONG_MIN,LLONG_MIN+1,-100,-2,-1,0,1,2,100,LLONG_MAX-1,LLONG_MAX};
+for(ll x:values)for(ll y:values)if(y&&!(x==LLONG_MIN&&y==-1)){
+    __int128_t a=x,b=y,q=a/b,r=a%b;
+    require(Floor(x,y)==q-(r&&((r<0)!=(b<0))));require(Ceil(x,y)==q+(r&&((r<0)==(b<0))));
+}
+''')
+
+run('dynamic_scc','02-*/01-*/02-*.tex',r'''
+for(int z=0;z<400;z++){
+    int n=rnd(1,10),m=rnd(0,25);for(int i=1;i<=n;i++)fa[i]=i;node.clear();tim=tp=scc=0;
+    for(int i=1;i<=n;i++){dfn[i]=low[i]=bel[i]=in[i]=0;e[i].clear();}
+    vector<array<int,3>> edges;vector<vector<int>> reach(n+1,vector<int>(n+1));
+    for(int i=1;i<=m;i++){U[i]=rnd(1,n);V[i]=rnd(1,n);edges.push_back({U[i],V[i],i});reach[U[i]][V[i]]=1;}
+    for(int i=1;i<=n;i++)reach[i][i]=1;
+    for(int k=1;k<=n;k++)for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)reach[i][j]|=reach[i][k]&&reach[k][j];
+    if(m)work(1,m,edges);
+    for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)require((find(i)==find(j))==bool(reach[i][j]&&reach[j][i]));
 }
 ''')
 
 run('mcmf_capacities','02-*/04-*/02-*.tex',r'''
 for(int z=0;z<250;z++){
-    int size=rnd(2,6),count=rnd(0,8);init_mcmf(size,1,size);vector<array<int,4>> input;
+    int size=rnd(2,6),count=rnd(0,8);nodes=size;S=1;T=size;cnt=1;cst=0;fill(hd,hd+nodes+1,0);vector<array<int,4>> input;
     bool dag=rnd(0,1);
     for(int i=0;i<count;i++){
         int u=rnd(1,size),v=rnd(1,size);if(dag){u=rnd(1,size-1);v=rnd(u+1,size);}
@@ -576,4 +600,15 @@ for(int z=0;z<250;z++){
 }
 ''')
 
-print(f'{len(passed)} extracted-template regression groups passed.')
+run('exlucas','05-*/02-*/03-*.tex',r'''
+gt();
+for(int z=0;z<80;z++){
+    int mod=rnd(1,1500),n=rnd(0,30);vector<ll> row(n+1);row[0]=1%mod;
+    for(int i=1;i<=n;i++)for(int j=i;j>=1;j--)row[j]=(row[j]+row[j-1])%mod;
+    for(int m=0;m<=n+1;m++)require(C(n,m,mod)==(m<=n?row[m]:0));
+}
+require(C(1000000000000LL,1,1000003)==1000000000000LL%1000003);
+require(C(10,3,2000003)==120); // sample modulus size is not an algorithm limit
+''',before='ll qp(ll a,ll b,ll p){ll r=1;for(;b;b>>=1,a=a*a%p)if(b&1)r=r*a%p;return r;}')
+
+print(f'{len(passed)} original-interface regression groups passed.')

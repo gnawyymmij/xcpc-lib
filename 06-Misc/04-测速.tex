@@ -10,4 +10,4 @@ std::chrono::duration<double> elapsed = end - start;
 std::cerr << "\nRunning: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 \end{lstlisting}
 
-\paragraph{多测与注意} 测单组就把 start/end 放在 solve 内，测总体则放在多测循环外。
+\paragraph{多测与注意} 测单组就把计时放 solve 内，测整体则放多测循环外。

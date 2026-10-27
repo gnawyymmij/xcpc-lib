@@ -11,9 +11,6 @@ ll dis[100010];
 const ll inf=LLONG_MAX/4;
 queue<ll>q;
 ll nodes,S,T;
-void init_dinic(int count,int source,int sink){
-    nodes=count;S=source;T=sink;cnt=1;fill(hd,hd+nodes+1,0);
-}
 bool bfs(){
     while(!q.empty())q.pop();
     f(i,1,nodes)cur[i]=hd[i],de[i]=inf;de[S]=0;q.push(S);
@@ -36,7 +33,7 @@ ll dfs(ll u,ll fl){
             k=dfs(v,min(fl,e[i].w));
             e[i].w-=k,e[i^1].w+=k;
             fl-=k,res+=k;
-            if(!fl)break; // preserve a partially usable current arc
+            if(!fl)break;
         }
     }return res;
 }
@@ -44,11 +41,11 @@ ll n,m;
 ll dinic(){
     ll res=0;
     if(S==T)return 0;
-    while(bfs()){ll pushed;while((pushed=dfs(S,inf)))res+=pushed;}
+    while(bfs())res+=dfs(S,inf);
     return res;
 }
 int main(){
-    n=d,m=d,S=d,T=d;init_dinic(n,S,T);
+    n=d,m=d,S=d,T=d;nodes=n;cnt=1;fill(hd,hd+nodes+1,0);
     f(i,1,m){
         ll u=d,v=d,w=d;
         ad(u,v,w);
@@ -57,4 +54,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 init\_dinic 后加边；边池按正反两倍开，nodes 包含超级源汇。再次 dinic 返回新增流量。通用复杂度 $O(V^2E)$，深图注意 DFS 栈。
+\paragraph{多测与注意} 读边前已清 hd、cnt=1；保留原接口。容量非负，nodes 含超级源汇，边池按正反两倍开。再跑一次返回新增流量。

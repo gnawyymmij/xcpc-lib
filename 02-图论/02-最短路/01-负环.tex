@@ -1,22 +1,27 @@
 \subsubsection{负环 (Negative Cycle Detection - SPFA)}
-SPFA 检测全图负环：全部点以距离 0 入队，用松弛路径边数判环。
+使用 SPFA (Shortest Path Faster Algorithm) 检测图中的负环。
 \begin{lstlisting}
-bool negative_cycle(const vector<vector<pair<int,ll>>>& g){
-    int n=int(g.size())-1; // vertices 1..n
-    vector<__int128_t> dist(n+1,0);
-    vector<int> length(n+1,0);
-    vector<char> in(n+1,true);queue<int> q;
-    for(int i=1;i<=n;i++)q.push(i);
-    while(!q.empty()){
-        int u=q.front();q.pop();in[u]=false;
-        for(auto [v,w]:g[u])if(dist[v]>dist[u]+w){
-            dist[v]=dist[u]+w;length[v]=length[u]+1;
-            if(length[v]>=n)return true;
-            if(!in[v])q.push(v),in[v]=true;
-        }
-    }
-    return false;
+ll dis[10010];
+bool in[10010];
+ll c[10010];
+queue<ll>q;
+bool work(){
+	while(!q.empty())q.pop();
+    f(i,1,n)dis[i]=c[i]=0,in[i]=1,q.push(i);
+	while(!q.empty()){
+		ll u=q.front();q.pop();in[u]=0;
+		for(int i=hd[u];i;i=e[i].nx){
+			ll v=e[i].v;if(dis[v]>dis[u]+e[i].w){
+				dis[v]=dis[u]+e[i].w;c[v]=c[u]+1;
+                if(c[v]>=n)return 1;
+				if(!in[v]){
+					in[v]=1;
+					q.push(v);
+				}
+			}
+		}
+	}return 0;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 局部变量可直接多测，图由调用方重建。这里检测全图负环；若只查源可达负环则仅将源入队。SPFA 最坏 $O(nm)$。
+\paragraph{多测与注意} 每次 work 自行重置距离、计数和队列；图按组重建。默认检测全图，若只查源可达负环则仅从源入队。SPFA 最坏 $O(nm)$。

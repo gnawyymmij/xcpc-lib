@@ -21,12 +21,10 @@ void dfs(ll u){
 		}
 	}
 }
-void init(int n){
+void init(ll n){
     cur=scc=tp=0;
-    for(int i=0;i<=n;i++){
-        dfn[i]=low[i]=bel[i]=0;ins[i]=false;e[i].clear();
-    }
+    f(i,1,n)dfn[i]=low[i]=bel[i]=ins[i]=0,e[i].clear();
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 init(n) 后读边，遍历所有未访问点调用 dfs。跨 SCC 的边 $u\to v$ 满足 bel[u]>bel[v]。深链注意递归栈。
+\paragraph{多测与注意} 每组 init(n) 后读边，遍历所有未访问点 dfs。bel 是逆拓扑编号；深链注意递归栈。

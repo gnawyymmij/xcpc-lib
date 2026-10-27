@@ -1,14 +1,13 @@
 \subsection{C++ 手动上下取整}
-C++ 商向零截断，按余数符号修正为向下／向上取整。
+众所周知 c++ 的负数取整逻辑是向 0 取整，强需要向下/上取整的时候很麻烦。
+
 \begin{lstlisting}
+ll Ceil(ll x,ll y);
 ll Floor(ll x,ll y){
-    ll q=x/y,r=x%y;
-    return q-(r!=0&&((r<0)!=(y<0)));
-}
-ll Ceil(ll x,ll y){
-    ll q=x/y,r=x%y;
-    return q+(r!=0&&((r<0)==(y<0)));
+    ll q=x/y,r=x%y;return q-(r!=0&&((r<0)!=(y<0)));
+}ll Ceil(ll x,ll y){
+    ll q=x/y,r=x%y;return q+(r!=0&&((r<0)==(y<0)));
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 无共享状态。默认除数非零且商能由 ll 表示；按余数符号修正，避免 x+y-1 的额外溢出。
+\paragraph{多测与注意} 函数名不变，只改商余数修正，避免 x+y-1 和取负溢出。除数非零，商可由 ll 表示。

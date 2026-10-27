@@ -10,10 +10,10 @@ ll get(ll l,ll r){
     return (h[r]-pw[r-l+1]*h[l-1]%mod+mod)%mod;
 }
 int main(){
+    pw[0]=1;f(i,1,1000000)pw[i]=pw[i-1]*bs%mod;
     scanf("%s",c+1);n=strlen(c+1);h[0]=0;
-    pw[0]=1;f(i,1,n)pw[i]=pw[i-1]*bs%mod;
     f(i,1,n)h[i]=(h[i-1]*bs+(c[i]-'a'+1))%mod;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组重建 h，幂表也可按最大长度预处理一次。小写字母版本；实战建议双模数 hash。
+\paragraph{多测与注意} 每组重建 h，固定参数的幂表可预处理一次。保留原单模数写法，实战建议双 hash。

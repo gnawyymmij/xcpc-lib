@@ -1,28 +1,39 @@
 \subsection{欧拉路径 (Eulerian Path)}
-有向图 Hierholzer，顶点从 1 编号；返回空 vector 表示无解。检查度数与实际使用边数，可处理非连通图、重边、自环；无边且 $n>0$ 返回顶点 1。显式栈避免 $O(m)$ 深递归。局部变量支持多测；排序后输出字典序最小路径，时间 $O(n+m\log m)$，不要求字典序时可去掉排序，降为 $O(n+m)$。
+\paragraph{有向图}
 \begin{lstlisting}
-vector<int> euler_directed(int n,const vector<pair<int,int>>& edges){
-    if(n<=0)return {};
-    vector<vector<int>> g(n+1);vector<int> in(n+1),out(n+1),cur(n+1);
-    for(auto [u,v]:edges){g[u].push_back(v);out[u]++;in[v]++;}
-    int start=-1,finish=-1;
-    for(int u=1;u<=n;u++){
-        if(out[u]-in[u]==1){if(start!=-1)return {};start=u;}
-        else if(in[u]-out[u]==1){if(finish!=-1)return {};finish=u;}
-        else if(in[u]!=out[u])return {};
-        sort(g[u].begin(),g[u].end());
-    }
-    if((start==-1)!=(finish==-1))return {};
-    if(start==-1){start=1;for(int u=1;u<=n;u++)if(out[u]){start=u;break;}}
-    vector<int> st{start},path;
-    while(!st.empty()){
-        int u=st.back();
-        if(cur[u]<int(g[u].size()))st.push_back(g[u][cur[u]++]);
-        else path.push_back(u),st.pop_back();
-    }
-    if(path.size()!=edges.size()+1)return {};
-    reverse(path.begin(),path.end());return path;
+vi e[100010];
+ll cur[100010];
+ll in[100010],out[100010];
+ll ans[1000010],c;
+void dfs(ll u){
+	for(int i=cur[u];i<e[u].size();i=cur[u]){
+		ll v=e[u][i];cur[u]=i+1;
+		dfs(v);
+	}ans[++c]=u;
+}
+int main(){
+	n=d,m=d;c=0;
+    f(i,1,n)e[i].clear(),cur[i]=in[i]=out[i]=0;
+    f(i,1,m){
+		ll u=d,v=d;
+		e[u].pb(v);
+		in[v]++,out[u]++;
+	}f(i,1,n)sort(e[i].begin(),e[i].end());
+	ll x = -1, y = -1; // x: start, y: end
+	f(i,1,n){
+		// if(i==1)cout<<in[i]<<" "<<out[i]<<endl;
+		if(in[i]==out[i])continue;
+		if(abs(in[i]-out[i])>1){pn;return 0;}
+		if(in[i]==out[i]+1){if(y!=-1){pn;return 0;}y=i;}
+		if(in[i]==out[i]-1){if(x!=-1){pn;return 0;}x=i;}
+	}if(x==-1){x=1;f(i,1,n)if(out[i]){x=i;break;}}dfs(x);
+    if(c!=m+1){pn;return 0;}
+	for(int i=c;i>=1;i--)cout<<ans[i]<<" ";
+	return 0;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 局部变量直接多测。无向图需改成共享边编号判重，并判断奇度点为 0 或 2；仍要检查是否用尽所有边。不要求字典序时去掉排序。
+\paragraph{无向图}
+无向图：把经过过的边标记一下不要走即可 (Hierholzer 算法)。
+
+\paragraph{多测与注意} 保留递归 Hierholzer，已补非零度起点与用尽所有边的检查。多测初始化已放在读边前；边很多时 DFS 栈深为边数。

@@ -1,5 +1,5 @@
 \subsection{LCT (Link-Cut Tree)}
-动态森林，维护路径异或；操作均摊 $O(\log n)$。
+反正我不会，看着乐呵乐呵好了。。
 
 这里求得是链 xor
 \begin{lstlisting}
@@ -54,11 +54,7 @@ void pd(ll p){
 	if(!isr(y))ch[z][y==rs(z)]=x;
 	ch[y][t]=ch[x][t^1];if(ch[x][t^1])fa[ch[x][t^1]]=y;
 	ch[x][t^1]=y;fa[y]=x,fa[x]=z;upd(y);upd(x);
-}void pda(ll x){
-    static vector<int> st;st.clear();
-    for(int y=x;;y=fa[y]){st.push_back(y);if(isr(y))break;}
-    while(!st.empty()){pd(st.back());st.pop_back();}
-}
+}void pda(ll x){if(!isr(x))pda(fa[x]);pd(x);}
 void splay(ll x){//cout<<x<<endl;
 	pda(x);//cout<<x<<endl;
 	while(!isr(x)){
@@ -88,21 +84,20 @@ void splay(ll x){//cout<<x<<endl;
 	fa[x]=y;splay(y);return 1;
 }ll cut(ll x,ll y){
 	split(x,y);
-    if(ls(y)!=x||rs(x))return 0;
-    ls(y)=fa[x]=0;upd(y);return 1;
+    if(ls(y)==x&&!rs(x)){ls(y)=fa[x]=0;upd(y);return 1;}return 0;
 }
 int main(){
 	n=d,m=d;
-    f(i,0,n){fa[i]=ch[i][0]=ch[i][1]=tg[i]=val[i]=sum[i]=0;}
+    f(i,0,n)fa[i]=ch[i][0]=ch[i][1]=tg[i]=val[i]=sum[i]=0;
     f(i,1,n)sum[i]=val[i]=d;
 	while(m--){
 		ll o=d,x=d,y=d;
 		if(o==0)split(x,y),printf("%d\n",sum[y]);
 		if(o==1)link(x,y);if(o==2)cut(x,y);
-		if(o==3)access(x),splay(x),val[x]=y,upd(x);
+		if(o==3)splay(x),val[x]=y,upd(x);
 	}
 	return 0;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 将 main 的单组部分放进 solve 即可，节点字段已按本组清零。路径查询默认两点连通；维护的是异或，点权修改后要 upd。
+\paragraph{多测与注意} main 的单组部分可放进 solve，初始化已补；仍是原来的数组版路径异或。查询默认两点连通，深链留意递归下传的栈空间。

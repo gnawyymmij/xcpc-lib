@@ -1,46 +1,40 @@
 \subsection{AC 自动机 (Aho-Corasick)}
-小写字母稠密转移表。插入返回终点编号，支持重复模式；match 返回每个节点所代表字符串在文本中的出现次数。每组先 clear，插完全部模式后 build，之后才可匹配。构建 $O(26V)$，单次匹配 $O(|text|+V)$。
+字符集过大时，暴力跳 fail 是对的。
 \begin{lstlisting}
-struct AhoCorasick {
-    struct Node{array<int,26> next{};int fail=0;};
-    vector<Node> t;
-    vector<int> order;
-    bool built=false;
-    AhoCorasick(){clear();}
-    void clear(){t.assign(1,{});order.clear();built=false;}
-    int add(const string& s){
-        int u=0;
-        for(char c:s){
-            int x=c-'a';
-            if(!t[u].next[x]){
-                int v=t.size();t.push_back({});t[u].next[x]=v;
-            }
-            u=t[u].next[x];
-        }
-        return u;
-    }
-    void build(){
-        queue<int> q;
-        for(int v:t[0].next)if(v)q.push(v);
-        while(!q.empty()){
-            int u=q.front();q.pop();order.push_back(u);
-            for(int c=0;c<26;c++){
-                int v=t[u].next[c],f=t[u].fail;
-                if(v)t[v].fail=t[f].next[c],q.push(v);
-                else t[u].next[c]=t[f].next[c];
-            }
-        }
-        built=true;
-    }
-    vector<ll> match(const string& s)const{
-        vector<ll> count(t.size());int u=0;
-        for(char c:s){int x=c-'a';u=t[u].next[x];count[u]++;}
-        for(int i=int(order.size())-1;i>=0;i--){
-            int v=order[i];count[t[v].fail]+=count[v];
-        }
-        return count;
-    }
-};
+ll ch[1000010][26];
+ll fail[1000010];
+vi e[1000010];
+void add(ll nd){ll u=1;
+	ll len=strlen(c+1);
+	f(i,1,len){
+		ll p=c[i]-'a';
+		if(!ch[u][p])ch[u][p]=++cnt;
+		u=ch[u][p];
+	}
+}queue<ll>q;
+void gtf(){
+	fail[1]=1;
+	f(i,0,25){
+		if(ch[1][i])q.push(ch[1][i]),fail[ch[1][i]]=1;
+		else ch[1][i]=1;
+	}while(!q.empty()){
+		ll u=q.front();q.pop();
+		f(i,0,25){
+			if(ch[u][i])fail[ch[u][i]]=ch[fail[u]][i],q.push(ch[u][i]);
+			else ch[u][i]=ch[fail[u]][i];
+		}
+	}
+}
+
+//字符集过大时，暴力跳 fail 是对的。用 find(u,i) 代替 ch[u][i]（getfail里和跑acam的时候）
+ll find(ll u,ll i){
+	while(u!=1&&!ch[u][i])u=fail[u];
+    return ch[u][i]?ch[u][i]:1;
+}
+void init(){
+    f(i,0,cnt){fill(ch[i],ch[i]+26,0);fail[i]=0;e[i].clear();}
+    cnt=1;while(!q.empty())q.pop();
+}
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 clear，插完全部模式后 build，再 match。build 补全转移后不要继续插入或重复 build；大字符集改稀疏转移。
+\paragraph{多测与注意} 每组先 init，再全部 add、gtf；保留根编号 1。gtf 补全转移后不要再插模式或重复构建。稀疏版 find 只用于未补全的 trie 转移。

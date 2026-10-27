@@ -1,17 +1,16 @@
 \subsection{哈希表}
-线性探测哈希表，splitmix64 加随机种子。
+本地实现线性探测，yosupo \~175ms（umap+同一个shift函数 334ms）
 \begin{lstlisting}
 using u64=unsigned long long;
 u64 xorshift(u64 x) {
-	static const u64 seed=chrono::steady_clock::now().time_since_epoch().count();
-    x += seed+0x9e3779b97f4a7c15;
-    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+	x += 0x9e3779b97f4a7c15;
+    // x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
     x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
     return x ^ (x >> 31);
 }
 template<typename K, typename V, int M=(1<<20)>
 struct HashTable{
-	static_assert(M>0 && (M&(M-1))==0);
+	static_assert((M&(M-1))== 0);
     static const int MASK=M-1;
 	int cnt=0;vector<int>e;
 	bitset<M> used;
@@ -23,13 +22,12 @@ struct HashTable{
 	int size(){return cnt;}
 	int idx(K x){
 		int u=xorshift(x)&MASK;
-		for(int step=0;step<M;step++,u=(u+1)&MASK)
-            if(!used[u]||k[u]==x)return u;
-        return -1; // full table: never probe forever
+		for(;used[u]&&k[u]!=x;(++u)&=MASK);
+		return u;
 	}
 	V* find(K x){
 		int i=idx(x);
-		if(i<0||!used[i])return nullptr;
+		if(!used[i])return nullptr;
 		return &v[i];
 	}
 	V& operator [](K x){
@@ -42,6 +40,6 @@ struct HashTable{
 	}
 };
 \end{lstlisting}
-使用 operator[] 插入或访问，find 返回值指针。此处默认 K、V 为整数；其他键类型需要替换哈希函数，且不提供有序 map 操作。
+然后当 std::map 用即可。注：此处默认 K, V 都是整数，如果有其他类型需要额外先写一个该类型的 hash。
 
-\paragraph{多测与注意} 多测调用 clear()。M 取 2 的幂，按单组键数留足空槽；负载率别太高。只支持插入、查找、整体清空，不支持直接删槽。
+\paragraph{多测与注意} 每组调用 clear()。M 按键数留足空槽并取 2 的幂；此版本不处理表满，不支持直接删槽。

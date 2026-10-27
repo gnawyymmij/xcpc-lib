@@ -2,4 +2,4 @@
 Lucas 定理，用于在 O(p $\log_p n$) 时间内求解模小质数 p 的大组合数。（除法为下取整，要求 p 为质数）
 $$ \binom{n}{m} \equiv \binom{n \bmod p}{m \bmod p} \binom{\lfloor n/p \rfloor}{\lfloor m/p \rfloor} \pmod p $$
 
-\paragraph{多测与注意} 小质数 p 可花 $O(p)$ 预处理阶乘，每次查询 $O(\log_p n)$。同 p 多测复用，换 p 重建。
+\paragraph{多测与注意} 同 p 可复用阶乘表；$O(p)$ 预处理后，单次 Lucas 为 $O(\log_p n)$。

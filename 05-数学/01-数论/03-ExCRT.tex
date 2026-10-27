@@ -1,21 +1,23 @@
 \subsubsection{ExCRT (Extended Chinese Remainder Theorem)}
-合并 $x\equiv A\pmod B$ 与 $x\equiv a\pmod b$，返回是否有解。
+扩展中国剩余定理，用于求解模数不互质的线性同余方程组。
 \begin{lstlisting}
-using i128=__int128_t;
-i128 egcd128(i128 a,i128 b,i128& x,i128& y){
-    if(!b){x=1;y=0;return a;}
-    i128 u,v,g=egcd128(b,a%b,u,v);x=v;y=u-a/b*v;return g;
+ll x,y,c;
+void exgcd(ll a,ll b){
+	if(b==0){x=1,y=0;return;}
+	exgcd(b,a%b);ll xx=x,yy=y;
+	x=yy,y=xx-a/b*yy;
+}ll gcd(ll a,ll b){
+	return (b==0)?a:gcd(b,a%b);
 }
+ll A,B,a,b;
+// merge {x equiv A mod B} and {x equiv a mod b}
 bool merge(ll &A,ll &B,ll a,ll b){
-    i128 aa=((i128)A%B+B)%B,bb=((i128)a%b+b)%b;
-    i128 x,y,g=egcd128(B,b,x,y),diff=bb-aa;
-    if(diff%g)return false;
-    i128 period=(i128)B/g*b;
-    i128 step=(diff/g*x)%(b/g);
-    i128 answer=(aa+(i128)B*step)%period;
-    if(answer<0)answer+=period;
-    A=(ll)answer;B=(ll)period;return true;
+    c=a-A;ll g=gcd(b,B);
+    if(c%g)return false;
+    exgcd(B,b);
+    x=(__int128)x*(c/g)%(b/g);b=b/g*B;
+    A=((A+(__int128)x*B%b)%b+b)%b;B=b;return true;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 A=0、B=1 开始合并；返回 false 即无解，本组剩余输入仍要读完。模数为正；合并后的周期过大时将 A、B 一并改 128 位。
+\paragraph{多测与注意} 保留 A、B、x、y、c 及原合并流程，merge 仅增加 bool 返回值表示有无解。每组 A=0、B=1 开始；若周期超 ll，按题目改类型。

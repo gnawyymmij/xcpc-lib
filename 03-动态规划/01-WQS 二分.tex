@@ -27,7 +27,6 @@ int check(ll k){
     for(int i=1;i<=n;i++){
         dp[i]={INF,0};
         for(int j=0;j<i;j++){
-            if(dp[j].v==INF)continue;
             State t={dp[j].v+cost(j+1,i)+k,dp[j].cnt+1};
             if(better(t,dp[i]))dp[i]=t;
         }
@@ -37,7 +36,7 @@ int check(ll k){
 
 ll wqs(int m,ll L,ll R){
     while(L<R){
-        ll mid=ll((__int128)L+((__int128)R-L)/2);
+        ll mid=(L+R)>>1;
         if(check(mid)<=m)R=mid;
         else L=mid+1;
     }
@@ -47,4 +46,4 @@ ll wqs(int m,ll L,ll R){
 \end{lstlisting}
 上面只展示 WQS 本身，\texttt{check} 内部仍是 $O(n^2)$；实际使用时再套斜率优化、决策单调性等优化即可。
 
-\paragraph{多测与注意} check 每次覆盖 dp；cost 的前缀和按组重建。目标段数的最优值需有离散凸性，仅“段数单调”不够；二分范围要夹住答案斜率。
+\paragraph{多测与注意} 保留原 DP 与二分。每次 check 已覆盖 dp，本组 cost 预处理另建。需离散凸性，二分边界按题目选。

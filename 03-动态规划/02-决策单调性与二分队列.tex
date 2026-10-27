@@ -41,7 +41,7 @@ void take(int j,int i,ll extra=0){
 }
 
 void insert_candidate(int i){
-    if(i>=n)return;
+    if(i==n)return;
     while(hd<=tl){
         int j=q[tl].j;
         int l=max(i+1,q[tl].l),r=n;
@@ -78,4 +78,4 @@ void solve_dp(ll extra=0){
 
 和 WQS 合用时，令 \texttt{extra=k}，一次 \texttt{check(k)} 就是一次 $O(n\log n)$ 的上述 DP，于是总复杂度再乘一个 WQS 的二分次数。
 
-\paragraph{多测与注意} solve\_dp 每次重置队列和 dp[0]，其余顺序覆盖。cost 按组重建；$O(n\log n)$ 需要 cost 为 $O(1)$，含 tie-break 的两候选优劣需单次切换。
+\paragraph{多测与注意} 队列与 dp[0] 每次已重置，cost 依赖的数据按组建。含 tie-break 的候选比较需单次切换，复杂度还取决于 cost。

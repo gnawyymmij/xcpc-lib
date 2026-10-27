@@ -3,8 +3,7 @@ Kuhn-Munkres (KM) 算法，用于 O(n\textasciicircum 3) 求解二分图最小/�
 \begin{lstlisting}
 ll cst[1010][1010];
 #define inf 0x3f3f3f3f3f3f3f3f
-pair<ll,vector<int>> KM(int n,int m){
-    if(n>m)return {inf,{}};
+void KM(int n,int m){
     vector<ll>l(n+1),r(m+1);
     vector<int>p(m+1),ans(n+1);
     f(i,1,n){
@@ -19,32 +18,53 @@ pair<ll,vector<int>> KM(int n,int m){
                 if(w<dis[j])dis[j]=w,pre[j]=u;
                 if(dis[j]<mn)mn=dis[j],v=j;
             }
-            if(mn==inf)return {inf,{}};
             f(j,0,m){
                 if(done[j])l[p[j]]+=mn,r[j]-=mn;
                 else dis[j]-=mn;
             }
         }
         for(int v;u;u=v)v=pre[u],p[u]=p[v];
-    }f(j,1,m)if(p[j])ans[p[j]]=j;
-    return {-r[0],ans};
+    }f(j,1,m)ans[p[j]]=j;
     // cout<<(-r[0])<<endl;//最小权
     // f(j,1,m)cout<<p[j]<<" ";cout<<endl;//右部点的匹配点。左部点匹配点是 ans。
 }
 \end{lstlisting}
 
-\paragraph{稀疏图费用流做法（SSP）}
-复用前文 MCMF 代码而不是另写一份松弛器。下例为与其放在同一作用域的适配函数，左右点分别从 1 编号；每组重新建残量网络。最大匹配数下求最小费用，要求完美匹配时额外检查返回流量是否等于左部点数。允许原始边负费用；初始网络为 DAG，因此无负费用环。
+\paragraph{另一种费用流做法（SSP）}
+板子题没 KM 快。$O(|match|(|V|^2+|E|))$。
 \begin{lstlisting}
-array<ll,2> sparse_matching(int left,int right,
-                          const vector<tuple<int,int,ll>>& edges){
-    nodes=left+right+2;S=left+right+1;T=S+1;
-    fill(hd,hd+nodes+1,0);cnt=1;cst=0;
-    for(int u=1;u<=left;u++)ad(S,u,1,0);
-    for(int v=1;v<=right;v++)ad(left+v,T,1,0);
-    for(auto [u,v,c]:edges)ad(u,left+v,1,c);
-    spfa(S);return mcmf();
+#define inf 0x3f3f3f3f3f3f3f3f
+vector<pair<int,ll>>e[1010];//左边第 u 个点和右边第 v 个点，权为 w，建边 (u,{v,w})
+bool down(ll &x,ll y){return x>y?x=y,1:0;}
+void KM(int n,int m){
+    vector<ll>h(n+1),rv(m+1);
+    vector<int>R(m+1);
+    ll cost=0;
+    for(;;){
+        vector<ll>dis(n+1);
+        vector<int>vis(n+1),p0(n+1),p1(m+1);
+        f(i,0,m)dis[R[i]]=inf;
+        for(int x=0;vis[x]^=1;){
+            ll mn=inf;
+            for(auto [j,w]:e[x])if(down(dis[R[j]],dis[x]+w-rv[j]))p0[R[j]]=j,p1[j]=x;
+            f(j,1,n)if(!vis[j]&&down(mn,dis[j]-h[j]))x=j;
+        }if(dis[0]>=inf/2)break;
+        for(int r=p0[0];r;r=p0[R[r]]){
+            rv[r]+=dis[R[r]]-dis[p1[r]];
+            R[r]=p1[r];
+        }cost+=dis[0],h=dis;
+
+        // cout<<cost<<endl;
+        // for(auto _:R)cout<<_<<" ";cout<<endl;
+        // for(auto _:rv)cout<<_<<" ";cout<<endl;
+    }
+    //cost: 最小权
+    //R: 右部点的匹配点
+    //rv: 右部点匹配边的权值
+    //注意到每次增广一条路径，匹配数增加 1，意味着可以得到恰有多少个匹配时候的最小权
+    // cout<<cost<<endl;
+    // f(i,1,m)cout<<R[i]<<" ";cout<<endl;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} KM 每组覆盖本组 cst，要求 $n\le m$，复杂度 $O(n^2m)$。稀疏图用下方 MCMF 适配器，会自动重建图；要求完美匹配时检查流量是否为 n。禁边别直接拿 INF 参与势能运算。
+\paragraph{多测与注意} 两份 KM 均保留原写法、原局部结果变量。第一份需 $n\le m$，每组重填 cst；第二份读边前清 e，得到最大匹配数下的最小费用，不保证完美匹配。

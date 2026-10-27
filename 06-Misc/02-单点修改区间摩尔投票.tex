@@ -1,17 +1,6 @@
 \subsection{单点修改区间摩尔投票}
-线段树维护摩尔投票过程，节点 $(c,num)$ 表示投票完以后剩下的数和个数（没有的话记为 -1）。合并时若候选相同则计数相加；若候选不同，则抵消较小计数，保留计数较大的候选以及两个计数之差；相等时计数为 0（无候选）。只选较大的计数而不减去较小计数是错误的。
+线段树维护摩尔投票过程，节点 $(c,num)$ 表示投票完以后剩下的数和个数（没有的话记为 -1）。合并时若候选不同，保留计数较大的候选，计数取两者之差（相等则为 0）；候选相同才相加。
 
 然后还有一步要检验出来的数是不是合法，需要维护一个区间出现某个数的次数。可以平衡树。
 
-
-\begin{lstlisting}
-struct Vote{ll candidate;int count;};
-Vote merge_vote(Vote a,Vote b){
-    if(!a.count)return b;if(!b.count)return a;
-    if(a.candidate==b.candidate)return {a.candidate,a.count+b.count};
-    if(a.count>=b.count)return {a.candidate,a.count-b.count};
-    return {b.candidate,b.count-a.count};
-}
-\end{lstlisting}
-
-\paragraph{多测与注意} 候选还需查询真实出现次数，验证是否严格超过区间一半。每组重建线段树及位置集合，修改时同步更新旧值、新值的位置。
+\paragraph{多测与注意} 候选需再验证真实出现次数。每组重建线段树及位置集合，修改同步更新旧值、新值的位置。

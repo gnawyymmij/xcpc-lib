@@ -1,14 +1,13 @@
 \subsection{fhq-treap}
 1. 值域分裂
 \begin{lstlisting}
-mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 struct node{
     ll ls,rs;
-    ll val; unsigned long long rnd;
+    ll val,rnd;
     ll sz,num;
 }t[1000010];ll cur=0;
 ll newnode(ll val){
-    t[++cur]={0,0,val,rng(),1,1};
+    t[++cur]={0,0,val,rand(),1,1};
     return cur;
 }void upd(ll p){
     t[p].sz=t[t[p].ls].sz+t[t[p].rs].sz+t[p].num;
@@ -28,28 +27,21 @@ ll newnode(ll val){
     }
 }
 ll rt;
-void init(){cur=rt=0;t[0]={};}
-void split_lt(ll p,ll k,ll &x,ll &y){
-    if(!p){x=y=0;return;}
-    if(t[p].val<k)x=p,split_lt(t[p].rs,k,t[x].rs,y);
-    else y=p,split_lt(t[p].ls,k,x,t[y].ls);
-    upd(p);
-}
+void init(){rt=cur=0;t[0]={};}
 void insert(ll val){
     ll x,y,z;
-    split_lt(rt,val,x,y);split(y,val,y,z);
+    split(rt,val-1,x,y);split(y,val,y,z);
     if(y==0)y=newnode(val);else t[y].num++,t[y].sz++;
     rt=merge(merge(x,y),z);
 }void del(ll val){
     ll x,y,z;
-    split_lt(rt,val,x,y);split(y,val,y,z);
-    if(y==0){rt=merge(x,z);return;}
-    t[y].num--,t[y].sz--;
+    split(rt,val-1,x,y);split(y,val,y,z);
+    if(y==0){rt=merge(x,z);return;}t[y].num--,t[y].sz--;
     if(t[y].num==0)rt=merge(x,z);
     else rt=merge(merge(x,y),z);
 }
 ll rk(ll val){// 1 + (# of < val)
-    ll x,y;split_lt(rt,val,x,y);
+    ll x,y;split(rt,val-1,x,y);
     ll res=t[x].sz+1;rt=merge(x,y);
     return res;
 }
@@ -61,7 +53,7 @@ ll findkth(ll p,ll k){
     }
 }
 ll pred(ll val){ // max_{x<val} x
-    ll x,y;split_lt(rt,val,x,y);
+    ll x,y;split(rt,val-1,x,y);
     ll res=findkth(x,t[x].sz);
     rt=merge(x,y);
     return res;
@@ -75,17 +67,16 @@ ll pred(ll val){ // max_{x<val} x
 2. 排名分裂
 \begin{lstlisting}
 ll n,m,cnt;
-mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 struct node{
     int ls,rs;
-    ll val; unsigned long long rnd;
+    ll val,rnd;
     int sz,num;
     int tg;// 打了 tag，可以不用。这里是区间 reverse 板子。
 }t[100010];
 #define ls(p) (t[(p)].ls)
 #define rs(p) (t[(p)].rs)
 int newnode(ll x){
-    t[++cnt]={0,0,x,rng(),1,1,0};
+    t[++cnt]={0,0,x,rand(),1,1,0};
     return cnt;
 }
 void upd(int p){t[p].sz=t[ls(p)].sz+t[rs(p)].sz+t[p].num;}
@@ -111,7 +102,7 @@ void out(int p){
     out(ls(p)),cout<<t[p].val<<" ",out(rs(p));
 }
 ll rt;
-void init(){cnt=rt=0;t[0]={};}
+void init(){rt=cnt=0;t[0]={};}
 \end{lstlisting}
 
-\paragraph{多测与注意} 两份独立选用，每组 init()。节点池按单组累计新建数开，删除不回收编号。排名分裂版每个节点 num=1；kth／前驱／后继查询默认合法，若题目不保证则自行判断或加哨兵。
+\paragraph{多测与注意} 两份代码独立选用，每组 init()。保留原 split、merge 和节点池；删除不回收编号。查询默认合法，val-1 要避开类型最小值；排名分裂版 num=1。

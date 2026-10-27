@@ -35,8 +35,7 @@ L_{ij} = \begin{cases}
 
 \begin{lstlisting}
 void solve(){
-    n=d,m=d;ll o=d;
-    f(i,1,n)f(j,1,n)a[i][j]=0;//0 无向；1 有向且 1 为根外向树
+    n=d,m=d;f(i,1,n)f(j,1,n)a[i][j]=0;ll o=d;//0 无向；1 有向且 1 为根外向树
     if(o==0){
         f(i,1,m){
             ll u=d,v=d,w=d;
@@ -57,4 +56,4 @@ void solve(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组清当前矩阵，solve 已补。重边权值相加，自环抵消；多次换根计算时保留原矩阵副本。调用上方 det 时要求素数模。
+\paragraph{多测与注意} 已补清本组矩阵。平行边权相加、自环抵消；换根多次求值先存原矩阵。调用上方 det 仍需素数模。

@@ -1,41 +1,46 @@
 \subsection{回文自动机 (Palindrome Automaton - PAM)}
-小写字母回文自动机，维护回文后缀数与各回文出现次数。
 \begin{lstlisting}
-struct PalindromicTree {
-    struct Node{array<int,26> next{};int len=0,fail=0,suffixes=0;ll occ=0;};
-    vector<Node> t;
-    vector<int> text;
-    int last=0;
-    PalindromicTree(){clear();}
-    void clear(){
-        t.assign(2,{});t[0].len=0;t[0].fail=1;
-        t[1].len=-1;t[1].fail=1;text.assign(1,-1);last=0;
-    }
-    int getfail(int u){
-        int pos=int(text.size())-1;
-        while(text[pos-t[u].len-1]!=text[pos])u=t[u].fail;
-        return u;
-    }
-    int add(char c){
-        int x=c-'a';text.push_back(x);
-        int u=getfail(last);
-        if(!t[u].next[x]){
-            int v=t.size();t.push_back({});t[v].len=t[u].len+2;
-            t[v].fail=(t[v].len==1?0:t[getfail(t[u].fail)].next[x]);
-            t[v].suffixes=t[t[v].fail].suffixes+1;t[u].next[x]=v;
-        }
-        last=t[u].next[x];t[last].occ++;
-        return t[last].suffixes;
-    }
-    vector<ll> occurrences()const{ // non-destructive; safe to call repeatedly
-        vector<ll> count(t.size());
-        for(int i=2;i<int(t.size());i++)count[i]=t[i].occ;
-        for(int i=int(t.size())-1;i>=2;i--)count[t[i].fail]+=count[i];
-        return count;
-    }
-};
+char C[500010];
+char c;
+ll res;
+ll ch[500010][26];
+ll fail[500010];
+ll len[500010];
+ll sz[500010];
+ll lst;
+void add(ll u){
+	while(1){
+		if(c==C[n-len[u]-1]){
+			if(!ch[u][c-'a'])ch[u][c-'a']=++cnt,len[cnt]=len[u]+2;
+			lst=ch[u][c-'a'];
+			break;
+		}u=fail[u];
+	}if(u==1){sz[ch[u][c-'a']]=1,fail[ch[u][c-'a']]=0;return;}
+	u=fail[u];
+	while(1){
+		if(c==C[n-len[u]-1]){
+			fail[lst]=ch[u][c-'a'];
+			sz[lst]=sz[ch[u][c-'a']]+1;
+			break;
+		}u=fail[u];
+	}
+}char fake[500010];
+int main(){
+	f(i,0,cnt){fill(ch[i],ch[i]+26,0);fail[i]=len[i]=sz[i]=0;}
+    n=res=0;C[0]=0;
+    len[0]=0,len[1]=-1;
+	cnt=1;fail[0]=1;fail[1]=-1;lst=1;
+	scanf("%s",fake+1);m=strlen(fake+1);
+	f(i,1,m){
+		c=(fake[i]-97+res)%26+97;
+		C[++n]=c;add(lst);
+		res=sz[lst];
+		printf("%lld ",res=sz[lst]);//以这个位置结尾的回文子串个数
+	}return 0;
+}
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 clear。add 返回当前回文后缀数，occurrences 返回各节点总出现次数；若题目有字符加密，在调用方处理。
+\paragraph{多测与注意} 保留原加密读入、add、sz 和根编号，只补逐组清空。若题目无字符加密，把计算 c 的那行改为 c=fake[i]。
 
 \newpage
+% =============================================

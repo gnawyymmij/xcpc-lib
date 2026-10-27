@@ -1,8 +1,8 @@
 \subsubsection{Dirichlet 前缀和 (Dirichlet Prefix Sum)}
 Dirichlet 前缀和，用于快速计算形如 $f(i) = \sum_{x|i}a_x$ 的函数。
-$$ a_i \to \sum_{x\mid i}a_x $$
+$$ a_i \to \sum_{x|i}a_x $$
 \begin{lstlisting}
 for(i=1;i<=cnt;++i)for(j=1;j*pr[i]<=n;++j)a[j*pr[i]]+=a[j];
 \end{lstlisting}
 
-\paragraph{多测与注意} 素数表预处理一次，j 递增；每组 a 恢复原输入再变换。逆变换按相反顺序做减法，模运算按题意添加。
+\paragraph{多测与注意} 素数表可复用；每组 a 恢复原输入。j 递增是约数和变换，逆变换反序做减法。

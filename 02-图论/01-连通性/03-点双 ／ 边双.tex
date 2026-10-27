@@ -1,63 +1,112 @@
 \subsubsection{点双 / 边双 (Biconnected Components)}
-同时求桥、边双、点双与点双边集，支持重边。点从 1 编号，边从 0 编号，时间空间 $O(n+m)$。
+\paragraph{边双}
 \begin{lstlisting}
-struct Biconnected {
-    int n,timer=0;
-    vector<pair<int,int>> edges;
-    vector<vector<pair<int,int>>> g;
-    vector<int> dfn,low,stack,component,seen;
-    vector<char> bridge;
-    vector<vector<int>> blocks,block_edges;
-    void init(int size){n=size;edges.clear();g.assign(n+1,{});}
-    int add(int u,int v){
-        int id=edges.size();edges.push_back({u,v});
-        if(u!=v){g[u].push_back({v,id});g[v].push_back({u,id});}
-        return id;
-    }
-    void dfs(int u,int parent_edge){
-        dfn[u]=low[u]=++timer;
-        for(auto [v,id]:g[u]){
-            if(id==parent_edge)continue;
-            if(!dfn[v]){
-                stack.push_back(id);dfs(v,id);low[u]=min(low[u],low[v]);
-                if(low[v]>dfn[u])bridge[id]=true;
-                if(low[v]>=dfn[u]){
-                    blocks.push_back({});block_edges.push_back({});
-                    int stamp=blocks.size();
-                    for(;;){
-                        int e=stack.back();stack.pop_back();
-                        block_edges.back().push_back(e);
-                        auto [a,b]=edges[e];
-                        for(int x:{a,b})if(seen[x]!=stamp){
-                            seen[x]=stamp;blocks.back().push_back(x);
-                        }
-                        if(e==id)break;
-                    }
-                }
-            }else if(dfn[v]<dfn[u]){
-                stack.push_back(id);low[u]=min(low[u],dfn[v]);
-            }
-        }
-    }
-    void run(){
-        timer=0;dfn.assign(n+1,0);low.assign(n+1,0);seen.assign(n+1,0);
-        bridge.assign(edges.size(),false);stack.clear();blocks.clear();block_edges.clear();
-        for(int u=1;u<=n;u++)if(!dfn[u]){
-            if(g[u].empty())blocks.push_back({u}),block_edges.push_back({});
-            dfs(u,-1);
-        }
-        component.assign(n+1,0);int count=0;
-        for(int u=1;u<=n;u++)if(!component[u]){
-            vector<int> q{u};component[u]=++count;
-            while(!q.empty()){
-                int x=q.back();q.pop_back();
-                for(auto [v,id]:g[x])if(!bridge[id]&&!component[v]){
-                    component[v]=count;q.push_back(v);
-                }
-            }
-        }
-    }
-};
+// 注意：cnt初始值需要等于 1！不然异或失效！
+ll dfn[500010],low[500010],tim;
+bool cut[4000010];
+void dfs(ll u,ll fa){
+	dfn[u]=low[u]=++tim;
+	for(int i=hd[u];i;i=e[i].nx){
+		ll v=e[i].v;if(i==(fa^1))continue;
+		// cout<<u<<" "<<v<<endl;
+		if(!dfn[v]){
+			dfs(v,i);low[u]=min(low[u],low[v]);
+			if(dfn[u]<low[v])cut[i]=cut[i^1]=1;
+		}else low[u]=min(low[u],dfn[v]);
+	}
+}ll fa[500010];
+ll find(ll x){if(fa[x]==x)return x;return fa[x]=find(fa[x]);}
+void un(ll u,ll v){fa[find(u)]=find(v);}
+ll rep[500010],dcc;
+vi Dcc[500010];
+int main(){
+	n=d,m=d;tim=dcc=0;cnt=1;
+    f(i,1,n)hd[i]=dfn[i]=low[i]=rep[i]=0,Dcc[i].clear();
+    f(i,0,2*m+2)cut[i]=0;
+    f(i,1,m){
+		ll u=d,v=d;
+		add(u,v),add(v,u);
+	}f(i,1,n)if(!dfn[i])dfs(i,0);
+	// f(i,1,n)cout<<dfn[i]<<" "<<low[i]<<endl;
+	f(i,1,n)fa[i]=i;
+	f(i,2,cnt)if(!cut[i])un(e[i].u,e[i].v);
+	f(i,1,n){
+		if(!rep[find(i)])rep[find(i)]=++dcc;
+		Dcc[rep[find(i)]].pb(i);
+	}cout<<dcc<<endl;
+	f(i,1,dcc){
+		cout<<Dcc[i].size()<<" ";
+		fe(j,Dcc[i])cout<<Dcc[i][j]<<" ";
+		cout<<endl;
+	}
+	return 0;
+}
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 init(n)、加边、run()。blocks 与 block\_edges 对应；遍历点双内部请用其边集，避免重复扫割点原邻接表。重边按边编号处理，自环在点双边集中忽略。深链注意递归栈。
+\paragraph{点双}
+\begin{lstlisting}
+vi e[500010];
+ll dfn[500010],low[500010],tim;
+ll st[500010],tp,dcc;
+bool in[500010];
+vi Dcc[500010];
+vector<array<int,2>>ed[1000010];
+ll deg[500010];
+array<int,2>ste[1000010];
+int tpe;
+void dfs(int u,int fa){
+    dfn[u]=low[u]=++tim;
+    st[++tp]=u;in[u]=1;
+    bool skipped=0;
+    for(auto v:e[u]){
+        if(v==u)continue;
+        if(v==fa&&!skipped){skipped=1;continue;}
+        if(!dfn[v]){
+            ste[++tpe]={u,v};
+            dfs(v,u);if(dfn[u]<=low[v]){
+                dcc++;Dcc[dcc].pb(u);
+                ll now;
+                while(1){
+                    now=st[tp--];in[now]=0;
+                    Dcc[dcc].pb(now);
+                    if(now==v)break;
+                }array<int,2>E;
+                while(1){
+                    E=ste[tpe--];
+                    ed[dcc].pb(E);
+                    if(E==(array<int,2>){u,v})break;
+                }
+            }low[u]=min(low[u],low[v]);
+        }else if(in[v]){
+            low[u]=min(low[u],dfn[v]);
+            if(dfn[v]<dfn[u])ste[++tpe]={u,v};
+        }
+    }
+}
+int main(){
+	n=d,m=d;tim=tp=tpe=0;
+    f(i,1,dcc)Dcc[i].clear(),ed[i].clear();dcc=0;
+    f(i,1,n)e[i].clear(),dfn[i]=low[i]=deg[i]=in[i]=0;
+    f(i,1,m){
+		ll u=d,v=d;if(u!=v)deg[u]++,deg[v]++;
+		e[u].pb(v),e[v].pb(u);
+	}f(i,1,n)if(!dfn[i]){
+        if(deg[i]==0)Dcc[++dcc].pb(i);
+        else tp=0,tpe=0,dfs(i,0);
+    }
+	cout<<dcc<<endl;
+	f(i,1,dcc){
+		cout<<Dcc[i].size()<<" ";
+		fe(j,Dcc[i])cout<<Dcc[i][j]<<" ";
+		cout<<endl;
+	}
+	return 0;
+}
+\end{lstlisting}
+
+
+\textbf{Note: } 如果需要逐点双遍历（如点双内 dfs），必须把点双内的边集也求出！不然复杂度错误！一个 trivial 的做法是往边上赛一个点，求出点双后如果集合内包含一个边上塞的点，那么这条边在点双内。这种做法在点双大小为 2 的时候会挂，比较难处理。
+
+现已将代码改为可以直接求出边集。
+
+\paragraph{多测与注意} 两份代码独立选用，已按本组清初始化。边双 cnt 从 1 起，按父边编号跳过反边以支持重边；点双仅跳一条父边。点双内部遍历用 ed，别反复扫原邻接表。

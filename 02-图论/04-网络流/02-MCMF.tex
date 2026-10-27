@@ -7,9 +7,6 @@ void add(ll u,ll v,ll w,ll c){e[++cnt]={u,v,w,c,hd[u]};hd[u]=cnt;}
 void ad(ll u,ll v,ll w,ll c){add(u,v,w,c),add(v,u,0,-c);}
 ll n,m,S,T,nodes;
 ll cst;
-void init_mcmf(int count,int source,int sink){
-    nodes=count;S=source;T=sink;cnt=1;cst=0;fill(hd,hd+nodes+1,0);
-}
 ll pre[100010];
 ll dis[100010];
 ll h[100010];
@@ -41,8 +38,7 @@ bool dij(){
     return dis[T]!=inf;
 }
 array<ll,2> mcmf(){
-    if(S==T)return {0,0};
-    ll fl=0;cst=0;
+    ll fl=0;
     while(dij()){
         fl+=arg();
         f(i,1,nodes)if(dis[i]!=inf)h[i]+=dis[i];
@@ -51,8 +47,8 @@ array<ll,2> mcmf(){
 }
 void spfa(ll s){
     queue<ll>q;
-    fill(h,h+nodes+1,inf);
-    fill(in,in+nodes+1,false);
+    fill(h+1,h+nodes+1,inf);
+    fill(in,in+nodes+1,0);
     h[s]=0;q.push(s);in[s]=1;
     while(!q.empty()){
         ll u=q.front();q.pop();in[u]=0;
@@ -66,7 +62,7 @@ void spfa(ll s){
     }
 }
 int main(){
-    n=d,m=d,S=d,T=d;init_mcmf(n,S,T);
+    n=d,m=d,S=d,T=d;nodes=n;cnt=1;cst=0;fill(hd,hd+nodes+1,0);
     f(i,1,m){
         ll u=d,v=d,w=d,c=d;
         ad(u,v,w,c);
@@ -77,4 +73,4 @@ int main(){
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 每组 init\_mcmf 后加边，再 spfa(S)、mcmf()。换源或另加边后重算势能。初始源可达负费用环需先处理；INF 和费用类型按题目选。复杂度为初始 SPFA 加每次增广 $O(E\log V)$。
+\paragraph{多测与注意} 每组重建图并 cst=0，读完后 spfa(S) 再 mcmf。已避免给不可达点累加 INF；初始源可达负费用环需另行处理，INF 与费用类型按题目选。

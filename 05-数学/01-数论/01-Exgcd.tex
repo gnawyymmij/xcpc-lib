@@ -1,16 +1,11 @@
 \subsubsection{Exgcd (Extended Euclidean Algorithm)}
-扩展欧几里得，返回 gcd 与一组系数；附线性不定方程求解。
+扩展欧几里得算法，用于求解形如 $ax + by = c$ 的不定方程。
 \begin{lstlisting}
-ll exgcd(ll a,ll b,ll &x,ll &y){
-    if(!b){x=1;y=0;return a;}
-    ll u,v,g=exgcd(b,a%b,u,v);
-    x=v;y=ll((__int128)u-(__int128)(a/b)*v);return g;
-}
-bool diophantine(ll a,ll b,ll c,__int128_t &x,__int128_t &y){
-    if(!a&&!b){x=y=0;return c==0;}
-    ll u,v,g=exgcd(a,b,u,v);if(c%g)return false;
-    x=(__int128)u*(c/g);y=(__int128)v*(c/g);return true;
+void exgcd(ll a,ll b){
+	if(b==0){x=c/a;y=0;return;}
+	exgcd(b,a%b);ll xx=x,yy=y;
+	x=yy,y=xx-a/b*yy;
 }
 \end{lstlisting}
 
-\paragraph{多测与注意} 无共享状态。方程有解需 gcd(a,b) 整除 c，再将系数乘 c/g；负 a、b 先取绝对值，最后恢复系数符号。
+\paragraph{多测与注意} 保留原求 $ax+by=c$ 的写法。调用前先判断 gcd(a,b) 是否整除 c；x、y 每次会重算，a=b=0 按题意特判。
